@@ -1,0 +1,23 @@
+[build]
+  functions = "netlify/functions"
+
+# Sicherheits-Header für alle Seiten
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Admin-Panel: kein Caching (immer aktuell)
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# JSON-Daten: kein Caching
+[[headers]]
+  for = "/_data/*"
+  [headers.values]
+    Cache-Control = "no-cache"
