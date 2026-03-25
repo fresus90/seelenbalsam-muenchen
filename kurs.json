@@ -1,0 +1,32 @@
+{
+  "beschreibung_kurz": "Spielerisch. Achtsam. Aus ganzem Herzen. Wo Kinder sich frei entfalten und in Balance kommen dürfen.",
+  "beschreibung_lang": "Bei Seelenbalsam – Ganzheitliche Bewegung für Kinder bietet Tamara vielseitige Kurse, in denen Kinder die Kraft der Bewegung und Achtsamkeit entdecken können. Mein Ansatz ist es, die Individualität und Kreativität jedes Kindes zu fördern.\n\nIn einer wertschätzenden Atmosphäre stärke ich das Selbstbewusstsein der Kinder und helfe ihnen, ihre körperlichen Fähigkeiten ganzheitlich zu entwickeln.",
+  "zitat": "Ich bin genau richtig, so wie ich bin.",
+  "details": {
+    "zeitraum": "Donnerstags 16:00 – 16:45 Uhr",
+    "startdatum": "ab 08. Mai 2025",
+    "ort_name": "Bewegungsraum Villa Verte",
+    "ort_adresse": "Hans-Mielich-Str. 8, 81543 München",
+    "preis": "150 €",
+    "dauer": "8 Wochen Kurs",
+    "max_kinder": "max. 10 Kinder pro Gruppe"
+  },
+  "ziele": [
+    {
+      "titel": "Stärkung des Körperbewusstseins",
+      "text": "Kinder lernen, ihren Körper wahrzunehmen und zu schätzen – als Grundlage für Gesundheit und Wohlbefinden."
+    },
+    {
+      "titel": "Raum für Achtsamkeit & Innehalten",
+      "text": "Momente der Stille und Wahrnehmung werden in Bewegung integriert – für mehr Balance im Alltag."
+    },
+    {
+      "titel": "Bewegung als Grundlage für Gesundheit & Lernen",
+      "text": "Bewegung fördert nicht nur die körperliche Fitness, sondern auch kognitive Entwicklung und Lernfreude."
+    },
+    {
+      "titel": "Förderung von Selbstvertrauen & Ausdruck",
+      "text": "Jedes Kind erfährt: Ich bin genau richtig, so wie ich bin – und traut sich immer mehr zu zeigen."
+    }
+  ]
+}
