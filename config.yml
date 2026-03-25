@@ -1,0 +1,164 @@
+backend:
+  name: github
+  repo: DEIN-GITHUB-USERNAME/seelenbalsam-website   # ← hier GitHub-Username eintragen
+  branch: main
+  base_url: https://api.netlify.com
+  auth_endpoint: auth
+
+media_folder: "images"
+public_folder: "/images"
+
+locale: de
+
+collections:
+
+  # ─── KURS-INFOS ────────────────────────────────────────────────
+  - name: "kurs"
+    label: "Kurs & Termine"
+    files:
+      - name: "kurs"
+        label: "Kurs & Termine"
+        file: "_data/kurs.json"
+        fields:
+          - { label: "Kursbeschreibung (kurz)", name: "beschreibung_kurz", widget: "text",
+              hint: "Erscheint im Hero-Bereich unter dem Titel." }
+          - { label: "Kursbeschreibung (lang)", name: "beschreibung_lang", widget: "markdown",
+              hint: "Ausführlicher Text im Kurs-Abschnitt." }
+          - { label: "Zitat / Leitsatz", name: "zitat", widget: "string",
+              hint: "z.B. »Ich bin genau richtig, so wie ich bin.«" }
+          - label: "Kursdetails"
+            name: "details"
+            widget: "object"
+            fields:
+              - { label: "Wochentag & Uhrzeit", name: "zeitraum", widget: "string",
+                  hint: "z.B. Donnerstags 16:00 – 16:45 Uhr" }
+              - { label: "Startdatum", name: "startdatum", widget: "string",
+                  hint: "z.B. ab 08. Mai 2025" }
+              - { label: "Ort (Name)", name: "ort_name", widget: "string",
+                  hint: "z.B. Bewegungsraum Villa Verte" }
+              - { label: "Ort (Adresse)", name: "ort_adresse", widget: "string",
+                  hint: "z.B. Hans-Mielich-Str. 8, 81543 München" }
+              - { label: "Preis", name: "preis", widget: "string",
+                  hint: "z.B. 150 €" }
+              - { label: "Kursdauer", name: "dauer", widget: "string",
+                  hint: "z.B. 8 Wochen Kurs" }
+              - { label: "Max. Teilnehmer", name: "max_kinder", widget: "string",
+                  hint: "z.B. max. 10 Kinder pro Gruppe" }
+          - label: "Ziele (4 Punkte)"
+            name: "ziele"
+            widget: "list"
+            min: 1
+            max: 6
+            fields:
+              - { label: "Titel", name: "titel", widget: "string" }
+              - { label: "Beschreibung", name: "text", widget: "text" }
+
+  # ─── ÜBER TAMARA ───────────────────────────────────────────────
+  - name: "ueber"
+    label: "Über Tamara"
+    files:
+      - name: "ueber"
+        label: "Über Tamara"
+        file: "_data/ueber.json"
+        fields:
+          - { label: "Foto von Tamara", name: "foto", widget: "image",
+              hint: "Empfohlene Größe: 600×750 px, JPG oder WebP." }
+          - { label: "Text (Absatz 1)", name: "text1", widget: "text" }
+          - { label: "Text (Absatz 2)", name: "text2", widget: "text" }
+          - { label: "Text (Absatz 3)", name: "text3", widget: "text" }
+          - { label: "Abschluss-Zitat / Signatur", name: "signatur", widget: "string",
+              hint: "z.B. Eure Tamara ♡" }
+
+  # ─── BILDER ────────────────────────────────────────────────────
+  - name: "bilder"
+    label: "Bilder"
+    files:
+      - name: "bilder"
+        label: "Hero & Galerie"
+        file: "_data/bilder.json"
+        fields:
+          - { label: "Hero-Hintergrundbild", name: "hero_bg", widget: "image",
+              hint: "Großes Bild ganz oben. Empfohlen: 1920×1080 px, JPG." }
+          - label: "Galerie (optional)"
+            name: "galerie"
+            widget: "list"
+            min: 0
+            max: 8
+            fields:
+              - { label: "Bild", name: "bild", widget: "image" }
+              - { label: "Bildbeschreibung (Alt-Text)", name: "alt", widget: "string" }
+
+  # ─── FAQ ───────────────────────────────────────────────────────
+  - name: "faq"
+    label: "FAQ (Häufige Fragen)"
+    files:
+      - name: "faq"
+        label: "FAQ-Einträge"
+        file: "_data/faq.json"
+        fields:
+          - label: "Fragen & Antworten"
+            name: "eintraege"
+            widget: "list"
+            min: 1
+            max: 20
+            fields:
+              - { label: "Frage (kurz, für Chip-Button)", name: "chip", widget: "string",
+                  hint: "z.B. »Was kostet der Kurs?« – erscheint als klickbarer Chip." }
+              - { label: "Frage (vollständig)", name: "frage", widget: "string" }
+              - { label: "Antwort", name: "antwort", widget: "text" }
+
+  # ─── KONTAKT ───────────────────────────────────────────────────
+  - name: "kontakt"
+    label: "Kontakt & Social"
+    files:
+      - name: "kontakt"
+        label: "Kontakt"
+        file: "_data/kontakt.json"
+        fields:
+          - { label: "Telefon / WhatsApp", name: "telefon", widget: "string",
+              hint: "z.B. +49 157 52129991" }
+          - { label: "E-Mail", name: "email", widget: "string",
+              hint: "z.B. seelenbalsam.muenchen@gmail.com" }
+          - { label: "Instagram-URL", name: "instagram", widget: "string",
+              required: false, hint: "Vollständige URL, z.B. https://instagram.com/seelenbalsam" }
+          - { label: "Adresse Kursraum", name: "adresse", widget: "text" }
+
+  # ─── IMPRESSUM ─────────────────────────────────────────────────
+  - name: "impressum"
+    label: "Impressum"
+    files:
+      - name: "impressum"
+        label: "Impressum"
+        file: "_data/impressum.json"
+        fields:
+          - { label: "Vollständiger Name", name: "name", widget: "string",
+              hint: "z.B. Tamara Möhwald" }
+          - { label: "Straße & Hausnummer", name: "strasse", widget: "string" }
+          - { label: "PLZ & Ort", name: "plz_ort", widget: "string",
+              hint: "z.B. 80000 München" }
+          - { label: "Telefon", name: "telefon", widget: "string" }
+          - { label: "E-Mail", name: "email", widget: "string" }
+          - { label: "USt-Regelung", name: "ust", widget: "text",
+              hint: "z.B. »Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.« oder USt-IdNr. eintragen." }
+          - { label: "Berufsbezeichnung & Ausbildung", name: "beruf", widget: "text",
+              hint: "z.B. Kinderpädagogin, Ausbildung an …" }
+
+  # ─── DATENSCHUTZ ───────────────────────────────────────────────
+  - name: "datenschutz"
+    label: "Datenschutzerklärung"
+    files:
+      - name: "datenschutz"
+        label: "Datenschutzerklärung"
+        file: "_data/datenschutz.json"
+        fields:
+          - { label: "Hosting-Anbieter", name: "hosting", widget: "string",
+              hint: "z.B. Netlify, Inc., 512 2nd Street, San Francisco, CA 94107, USA" }
+          - { label: "Google Fonts Einbindung", name: "google_fonts", widget: "select",
+              options: ["Über Google CDN (externe Anfrage)", "Lokal eingebunden (datenschutzfreundlich)"],
+              hint: "Wenn lokal: Schriften herunterladen und in /fonts/ ablegen." }
+          - { label: "E-Mail / Formular-Anbieter", name: "formular_anbieter", widget: "string",
+              required: false, hint: "Falls ein Drittanbieter für das Formular genutzt wird." }
+          - { label: "Datum der letzten Aktualisierung", name: "datum", widget: "date",
+              format: "DD. MMMM YYYY" }
+          - { label: "Zusätzliche Hinweise (optional)", name: "zusatz", widget: "markdown",
+              required: false }
