@@ -116,6 +116,183 @@
   .nav-cta:hover { background: var(--brown-text) !important; color: white !important; }
   .nav-cta::after { display: none !important; }
 
+  /* HAMBURGER BUTTON */
+  .nav-hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    z-index: 200;
+  }
+  .ham-line {
+    display: block;
+    width: 24px;
+    height: 1.5px;
+    background: var(--brown-text);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+  }
+  .nav-hamburger.open .ham-line:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+  .nav-hamburger.open .ham-line:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  .nav-hamburger.open .ham-line:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+
+  .mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(61, 43, 31, 0.45);
+    z-index: 149;
+    backdrop-filter: blur(2px);
+    animation: overlayIn 0.3s ease both;
+  }
+  .mobile-menu-overlay.open { display: block; }
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* FLYOUT PANEL */
+  .mobile-menu {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(320px, 88vw);
+    background: var(--warm-white);
+    z-index: 150;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: -8px 0 40px rgba(61, 43, 31, 0.15);
+  }
+  .mobile-menu.open { transform: translateX(0); }
+
+  /* Header */
+  .mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 70px;
+    border-bottom: 1px solid rgba(196, 144, 106, 0.15);
+    flex-shrink: 0;
+  }
+  .mobile-menu-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.18em;
+    color: var(--terracotta);
+    font-weight: 500;
+    text-transform: uppercase;
+  }
+  .mobile-menu-close {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: rgba(196, 144, 106, 0.1);
+    border: none;
+    cursor: pointer;
+    color: var(--taupe);
+    font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+  .mobile-menu-close:hover { background: var(--terracotta); color: white; }
+
+  /* Nav items – untereinander */
+  .mobile-menu-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0;
+  }
+  .mobile-menu-nav a {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 28px;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(196, 144, 106, 0.08);
+    transition: background 0.2s;
+    position: relative;
+  }
+  .mobile-menu-nav a:last-child { border-bottom: none; }
+  .mobile-menu-nav a:hover { background: rgba(196, 144, 106, 0.05); }
+  .mobile-menu-nav a:hover .mobile-nav-arrow { transform: translateX(4px); }
+
+  .mobile-nav-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.75rem;
+    color: var(--terracotta);
+    opacity: 0.6;
+    font-style: italic;
+    min-width: 20px;
+    flex-shrink: 0;
+  }
+  .mobile-nav-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--dark);
+    flex: 1;
+    line-height: 1;
+  }
+  .mobile-nav-arrow {
+    color: var(--terracotta);
+    font-size: 1rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  /* Footer mit Kontakt + CTA ganz unten */
+  .mobile-menu-footer {
+    padding: 24px 24px 44px;
+    border-top: 1px solid rgba(196, 144, 106, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .mobile-menu-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mobile-menu-contact a {
+    font-size: 0.76rem;
+    color: var(--taupe);
+    text-decoration: none;
+    text-align: center;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .mobile-menu-contact a:hover { color: var(--terracotta); }
+  .mobile-cta-btn {
+    display: block;
+    text-align: center;
+    background: var(--terracotta);
+    color: white;
+    text-decoration: none;
+    padding: 16px;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    transition: background 0.3s;
+    box-shadow: 0 6px 24px rgba(196, 144, 106, 0.35);
+  }
+  .mobile-cta-btn:hover { background: var(--dark); }
+
   /* HERO */
   #hero {
     height: 100vh;
@@ -1203,6 +1380,7 @@
   @media (max-width: 768px) {
     nav { padding: 0 20px; }
     .nav-links { display: none; }
+    .nav-hamburger { display: flex; }
     .ueber-grid, .anmeldung-grid { grid-template-columns: 1fr; gap: 40px; }
     .kurs-cards { grid-template-columns: 1fr; }
     .faq-grid { grid-template-columns: 1fr; }
@@ -1362,7 +1540,59 @@
     <li><a href="#faq">FAQ</a></li>
     <li><a href="#anmeldung" class="nav-cta">Jetzt anmelden</a></li>
   </ul>
+
+  <!-- Hamburger Button (nur mobil sichtbar) -->
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menü öffnen" aria-expanded="false">
+    <span class="ham-line"></span>
+    <span class="ham-line"></span>
+    <span class="ham-line"></span>
+  </button>
 </nav>
+
+<!-- Mobile Flyout Overlay -->
+<div class="mobile-menu-overlay" id="mobile-menu-overlay" onclick="closeMobileMenu()"></div>
+
+<!-- Mobile Flyout Menu -->
+<div class="mobile-menu" id="mobile-menu">
+
+  <!-- Header mit Logo + Schließen -->
+  <div class="mobile-menu-header">
+    <span class="mobile-menu-logo">Seelenbalsam</span>
+    <button class="mobile-menu-close" onclick="closeMobileMenu()" aria-label="Menü schließen">✕</button>
+  </div>
+
+  <!-- Alle Navigationspunkte untereinander -->
+  <nav class="mobile-menu-nav">
+    <a href="#ueber" onclick="closeMobileMenu()">
+      <span class="mobile-nav-number">01</span>
+      <span class="mobile-nav-label">Über Tamara</span>
+      <span class="mobile-nav-arrow">→</span>
+    </a>
+    <a href="#kurs" onclick="closeMobileMenu()">
+      <span class="mobile-nav-number">02</span>
+      <span class="mobile-nav-label">Der Kurs</span>
+      <span class="mobile-nav-arrow">→</span>
+    </a>
+    <a href="#faq" onclick="closeMobileMenu()">
+      <span class="mobile-nav-number">03</span>
+      <span class="mobile-nav-label">FAQ</span>
+      <span class="mobile-nav-arrow">→</span>
+    </a>
+  </nav>
+
+  <!-- Spacer drückt CTA nach unten -->
+  <div style="flex:1;"></div>
+
+  <!-- Kontakt & CTA ganz unten -->
+  <div class="mobile-menu-footer">
+    <div class="mobile-menu-contact">
+      <a href="tel:+4915752129991">+49 157 52129991</a>
+      <a href="mailto:seelenbalsam.muenchen@gmail.com">seelenbalsam.muenchen@gmail.com</a>
+    </div>
+    <a href="#anmeldung" class="mobile-cta-btn" onclick="closeMobileMenu()">Jetzt anmelden</a>
+  </div>
+
+</div>
 
 <!-- HERO -->
 <section id="hero">
@@ -1601,32 +1831,32 @@
           <div class="form-row">
             <div class="form-group">
               <label>Vorname Elternteil</label>
-              <input type="text" placeholder="Dein Vorname">
+              <input type="text" id="f-vorname" placeholder="Dein Vorname">
             </div>
             <div class="form-group">
               <label>Nachname</label>
-              <input type="text" placeholder="Dein Nachname">
+              <input type="text" id="f-nachname" placeholder="Dein Nachname">
             </div>
           </div>
 
           <div class="form-group">
             <label>E-Mail Adresse</label>
-            <input type="email" placeholder="deine@email.de">
+            <input type="email" id="f-email" placeholder="deine@email.de">
           </div>
 
           <div class="form-group">
             <label>Telefon / WhatsApp</label>
-            <input type="tel" placeholder="+49 ...">
+            <input type="tel" id="f-telefon" placeholder="+49 ...">
           </div>
 
           <div class="form-row">
             <div class="form-group">
               <label>Name des Kindes</label>
-              <input type="text" placeholder="Vorname Kind">
+              <input type="text" id="f-kind-name" placeholder="Vorname Kind">
             </div>
             <div class="form-group">
               <label>Alter des Kindes</label>
-              <select>
+              <select id="f-kind-alter">
                 <option value="" disabled selected>Bitte wählen</option>
                 <option>2 Jahre</option>
                 <option>3 Jahre</option>
@@ -1641,16 +1871,16 @@
 
           <div class="form-group">
             <label>Nachricht (optional)</label>
-            <textarea placeholder="Fragen oder Anmerkungen..."></textarea>
+            <textarea id="f-nachricht" placeholder="Fragen oder Anmerkungen..."></textarea>
           </div>
 
           <button class="form-submit" onclick="submitForm()">Anmeldung absenden →</button>
         </div>
 
         <div class="form-success" id="form-success">
-          <div class="success-icon">🌿</div>
-          <h3>Vielen Dank!</h3>
-          <p>Deine Anmeldung ist bei mir angekommen. Ich melde mich in Kürze bei dir, um alles weitere zu besprechen.<br><br>Ich freue mich auf euch! ♡<br>— Tamara</p>
+          <div class="success-icon">💬</div>
+          <h3>Fast geschafft!</h3>
+          <p>WhatsApp öffnet sich gleich automatisch mit deiner Anfrage vorausgefüllt.<br><br>Einfach absenden – Tamara meldet sich so schnell wie möglich! ♡<br>— Tamara</p>
         </div>
       </div>
     </div>
@@ -1804,6 +2034,38 @@
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  function toggleMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('mobile-menu-overlay');
+    const btn = document.getElementById('nav-hamburger');
+    const isOpen = menu.classList.contains('open');
+    if (isOpen) { closeMobileMenu(); } else {
+      menu.classList.add('open');
+      overlay.classList.add('open');
+      btn.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeMobileMenu() {
+    const menu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('mobile-menu-overlay');
+    const btn = document.getElementById('nav-hamburger');
+    menu.classList.remove('open');
+    overlay.classList.remove('open');
+    btn.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeMobileMenu();
+      ['impressum','datenschutz'].forEach(closeModal);
+    }
+  });
+
   function openModal(id) {
     const el = document.getElementById('modal-' + id);
     if (el) { el.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -1815,30 +2077,7 @@
   function handleOverlayClick(e, id) {
     if (e.target === e.currentTarget) closeModal(id);
   }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      ['impressum','datenschutz'].forEach(closeModal);
-    }
-  });
-  const SYSTEM_PROMPT = `Du bist Tamara Möhwald, Kinderpädagogin aus München und Gründerin von "Seelenbalsam – Ganzheitliche Bewegung für Kinder". Du beantwortest Fragen von Eltern auf der Seelenbalsam-Website warm, persönlich und einfühlsam auf Deutsch. Duze die Eltern. Halte Antworten kurz (2–4 Sätze). Nutze gelegentlich passende Emojis. Beginne nie mit "Als KI" – du bist Tamara.
-
-Fakten über Seelenbalsam:
-- Zielgruppe: Kinder ab 2 bis ca. 8 Jahre
-- Philosophie: ganzheitliche Bewegung, Achtsamkeit, Selbstvertrauen, Körperbewusstsein. Leitsatz: "Ich bin genau richtig, so wie ich bin."
-- Inhalte: kreative Bewegungsübungen, Musik, Bewegungsgeschichten, Achtsamkeitsimpulse
-- Kursdauer: 8 Wochen, 1x pro Woche, 45 Minuten
-- Aktueller Termin: donnerstags 16:00–16:45 Uhr, ab 08. Mai 2025
-- Ort: Bewegungsraum Villa Verte, Hans-Mielich-Str. 8, 81543 München
-- Kosten: 150 € für den 8-Wochen-Kurs
-- Anmeldung jederzeit möglich, über die Website oder direkt bei Tamara
-- Max. 10 Kinder pro Kurs
-- Mitbringen: Wasserflasche + Stoppersocken; Schuhe/Jacke am Eingang lassen
-- Keine Vorkenntnisse nötig
-- Kontakt: +49 157 52129991 (auch WhatsApp), seelenbalsam.muenchen@gmail.com
-- Tamara begleitet Kinder persönlich zur Kurstür; Eltern können sich dann zurückziehen
-- Zitat: "Bewegung ist der Tanz, in dem du die Welt entdeckst und dich selbst findest."
-
-Wenn du etwas nicht weißt, sag das freundlich und empfehle eine direkte Kontaktaufnahme. Erfinde keine Informationen.`;
+  // System-Prompt lebt jetzt sicher in netlify/functions/chat.js – nicht mehr im Browser
 
   const FAQ_ANSWERS = {
     'Für welches Alter sind die Kurse?': 'Die Kurse von Seelenbalsam sind für Kinder ab dem 2. Lebensjahr bis ca. 8 Jahre geeignet. Ich stimme meine Programme auf die Entwicklungsstufen ab – damit jedes Kind individuell gefördert wird. 🌱',
@@ -1893,15 +2132,11 @@ Wenn du etwas nicht weißt, sag das freundlich und empfehle eine direkte Kontakt
     const tid = showTyping();
     setLoading(true);
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      // Ruft die sichere Netlify Function auf – API-Key bleibt serverseitig, nie im Browser
+      const res = await fetch('/.netlify/functions/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 350,
-          system: SYSTEM_PROMPT,
-          messages: chatHistory
-        })
+        body: JSON.stringify({ messages: chatHistory })
       });
       const data = await res.json();
       removeTyping(tid);
@@ -1913,11 +2148,11 @@ Wenn du etwas nicht weißt, sag das freundlich und empfehle eine direkte Kontakt
     } catch (e) {
       removeTyping(tid);
       chatHistory.pop();
-      const sub = encodeURIComponent('Frage von der Website');
-      const body = encodeURIComponent(question);
+      const waText = '🌿 Hallo Tamara, ich habe eine Frage:\n\n' + question;
+      const waUrl = 'https://wa.me/4915752129991?text=' + encodeURIComponent(waText);
       appendMsg(
         'Das kann ich hier leider nicht direkt beantworten – aber Tamara hilft dir sehr gerne persönlich weiter! 🌿<br><br>' +
-        '<a href="mailto:seelenbalsam.muenchen@gmail.com?subject=' + sub + '&body=' + body + '">✉ E-Mail an Tamara senden →</a>',
+        '<a href="' + waUrl + '" target="_blank">💬 Tamara auf WhatsApp fragen →</a>',
         'fallback'
       );
     }
@@ -1948,8 +2183,38 @@ Wenn du etwas nicht weißt, sag das freundlich und empfehle eine direkte Kontakt
   }
 
   function submitForm() {
+    const vorname   = (document.getElementById('f-vorname')?.value   || '').trim();
+    const nachname  = (document.getElementById('f-nachname')?.value  || '').trim();
+    const email     = (document.getElementById('f-email')?.value     || '').trim();
+    const telefon   = (document.getElementById('f-telefon')?.value   || '').trim();
+    const kindName  = (document.getElementById('f-kind-name')?.value || '').trim();
+    const kindAlter = (document.getElementById('f-kind-alter')?.value|| '').trim();
+    const nachricht = (document.getElementById('f-nachricht')?.value || '').trim();
+
+    // Pflichtfelder prüfen
+    if (!vorname || !kindName || !kindAlter) {
+      alert('Bitte Vorname (Elternteil), Name und Alter des Kindes ausfüllen.');
+      return;
+    }
+
+    // Strukturierte Nachricht zusammenbauen
+    const lines = [
+      '🌿 *Neue Kursanmeldung – Seelenbalsam*',
+      '',
+      '*Elternteil:* ' + vorname + ' ' + nachname,
+      email    ? '*E-Mail:* '   + email    : null,
+      telefon  ? '*Telefon:* '  + telefon  : null,
+      '',
+      '*Kind:* ' + kindName + ', ' + kindAlter,
+      nachricht ? '*Nachricht:* ' + nachricht : null,
+    ].filter(l => l !== null).join('\n');
+
+    const url = 'https://wa.me/4915752129991?text=' + encodeURIComponent(lines);
+
+    // Erfolgsscreen zeigen, dann WhatsApp öffnen
     document.getElementById('form-content').style.display = 'none';
     document.getElementById('form-success').style.display = 'block';
+    setTimeout(function() { window.open(url, '_blank'); }, 400);
   }
 
   document.querySelectorAll('a[href^="#"]').forEach(function(a) {
