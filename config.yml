@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: DEIN-GITHUB-USERNAME/seelenbalsam-website   # ← hier GitHub-Username eintragen
+  repo: fresus90/seelenbalsam-website   # ← hier GitHub-Username eintragen
   branch: main
   base_url: https://api.netlify.com
   auth_endpoint: auth
