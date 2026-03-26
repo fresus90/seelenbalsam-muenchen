@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: fresus90/seelenbalsam-muenchen   # ← hier GitHub-Username eintragen
+  repo: DEIN-GITHUB-USERNAME/seelenbalsam-website   # ← hier GitHub-Username eintragen
   branch: main
   base_url: https://api.netlify.com
   auth_endpoint: auth
@@ -162,3 +162,71 @@ collections:
               format: "DD. MMMM YYYY" }
           - { label: "Zusätzliche Hinweise (optional)", name: "zusatz", widget: "markdown",
               required: false }
+
+  # ─── WISSENSDATENBANK (für den Chat-Bot) ───────────────────────
+  - name: "wissensdatenbank"
+    label: "Chat-Bot Wissensdatenbank"
+    files:
+      - name: "wissensdatenbank"
+        label: "Wissen für den Chat-Bot"
+        file: "_data/wissensdatenbank.json"
+        fields:
+          - label: "Über Tamara"
+            name: "tamara"
+            widget: "object"
+            fields:
+              - { label: "Name", name: "name", widget: "string" }
+              - { label: "Berufsbezeichnung", name: "beruf", widget: "string" }
+              - { label: "Standort", name: "standort", widget: "string" }
+              - { label: "Beschreibung / Bio", name: "beschreibung", widget: "text" }
+              - { label: "Persönliches Zitat", name: "zitat", widget: "string" }
+
+          - label: "Kurs-Informationen"
+            name: "kurs"
+            widget: "object"
+            fields:
+              - { label: "Kursname", name: "name", widget: "string" }
+              - { label: "Zielgruppe", name: "zielgruppe", widget: "string" }
+              - { label: "Philosophie", name: "philosophie", widget: "text" }
+              - { label: "Leitsatz", name: "leitsatz", widget: "string" }
+              - { label: "Kursinhalte", name: "inhalte", widget: "text" }
+              - { label: "Kursdauer", name: "kursdauer", widget: "string" }
+              - { label: "Max. Kinder", name: "max_kinder", widget: "string" }
+              - { label: "Vorkenntnisse", name: "vorkenntnisse", widget: "string" }
+
+          - label: "Aktuelle Termine"
+            name: "termine"
+            widget: "list"
+            min: 1
+            max: 10
+            fields:
+              - { label: "Bezeichnung", name: "bezeichnung", widget: "string",
+                  hint: "z.B. Aktueller Kurs, Sommerkurs 2025" }
+              - { label: "Wochentag", name: "wochentag", widget: "string",
+                  hint: "z.B. Donnerstags" }
+              - { label: "Uhrzeit", name: "uhrzeit", widget: "string",
+                  hint: "z.B. 16:00 – 16:45 Uhr" }
+              - { label: "Startdatum", name: "startdatum", widget: "string",
+                  hint: "z.B. ab 08. Mai 2025" }
+              - { label: "Ort Name", name: "ort_name", widget: "string" }
+              - { label: "Ort Adresse", name: "ort_adresse", widget: "string" }
+              - { label: "Preis", name: "preis", widget: "string",
+                  hint: "z.B. 150 €" }
+              - { label: "Anmeldung", name: "anmeldung", widget: "string",
+                  hint: "z.B. Jederzeit möglich" }
+
+          - { label: "Was mitbringen", name: "mitbringen", widget: "text" }
+          - { label: "Anmeldungs-Info", name: "anmeldung_info", widget: "text" }
+
+          - label: "Kontakt"
+            name: "kontakt"
+            widget: "object"
+            fields:
+              - { label: "Telefon / WhatsApp", name: "telefon", widget: "string" }
+              - { label: "WhatsApp", name: "whatsapp", widget: "string" }
+              - { label: "E-Mail", name: "email", widget: "string" }
+              - { label: "Kontakt-Hinweis", name: "hinweis", widget: "string" }
+
+          - { label: "Zusätzliche Infos (optional)", name: "zusatz_infos", widget: "markdown",
+              required: false,
+              hint: "Hier können weitere Infos eingetragen werden die der Chat-Bot wissen soll – z.B. Besonderheiten, Sondertermine, aktuelle Hinweise." }
