@@ -1621,10 +1621,11 @@
   <div class="container">
     <div class="ueber-grid">
       <div class="ueber-image-wrap">
-        <div class="ueber-image-bg">
-          <div class="ueber-image-placeholder">
+        <div class="ueber-image-bg" id="ueber-image-bg">
+          <div class="ueber-image-placeholder" id="ueber-placeholder">
             📸 Foto von Tamara
           </div>
+          <img id="tamara-foto" data-cms="tamara-foto" src="" alt="Tamara Möhwald" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;">
         </div>
         <div class="ueber-badge">
           Kinder&shy;päda&shy;gogin<br>München
@@ -1633,10 +1634,10 @@
       <div class="ueber-text">
         <span class="section-label">Die Seele hinter Seelenbalsam</span>
         <h2 class="section-title">Hallo, ich bin<br><em>Tamara</em></h2>
-        <p>Als Kinderpädagogin aus München liegt mir die ganzheitliche Entwicklung von Kindern am Herzen. Seelenbalsam ist meine Herzensangelegenheit – ein Ort, an dem sich Kinder frei entfalten, bewegen und in Balance kommen können.</p>
-        <p>Mit einer Mischung aus pädagogischem Fachwissen, Kreativität und einem tiefen Verständnis für die Bedürfnisse von Kindern begleite ich jedes Kind individuell auf seinem Weg.</p>
-        <p>Durch kreative Bewegungsangebote und achtsame Impulse fördere ich körperliche und emotionale Stärke – immer mit dem Ziel, jedem Kind den Raum zu bieten, in dem es in seinem eigenen Tempo wachsen kann.</p>
-        <div class="ueber-signature">Eure Tamara ♡</div>
+        <p data-cms="ueber-text1">Als Kinderpädagogin aus München liegt mir die ganzheitliche Entwicklung von Kindern am Herzen. Seelenbalsam ist meine Herzensangelegenheit – ein Ort, an dem sich Kinder frei entfalten, bewegen und in Balance kommen können.</p>
+        <p data-cms="ueber-text2">Mit einer Mischung aus pädagogischem Fachwissen, Kreativität und einem tiefen Verständnis für die Bedürfnisse von Kindern begleite ich jedes Kind individuell auf seinem Weg.</p>
+        <p data-cms="ueber-text3">Durch kreative Bewegungsangebote und achtsame Impulse fördere ich körperliche und emotionale Stärke – immer mit dem Ziel, jedem Kind den Raum zu bieten, in dem es in seinem eigenen Tempo wachsen kann.</p>
+        <div class="ueber-signature" data-cms="ueber-signatur">Eure Tamara ♡</div>
       </div>
     </div>
   </div>
@@ -1775,12 +1776,12 @@
         <span class="chat-divider-label">Häufige Fragen – einfach antippen</span>
       </div>
       <div class="chat-suggestions" id="chat-suggestions">
-        <button class="suggestion-chip" onclick="askQuestion(this, 'Für welches Alter sind die Kurse?')">Für welches Alter sind die Kurse?</button>
+        <button class="suggestion-chip" onclick="askQuestion(this, 'Für welches Alter sind die Kurse?')">Für welches Alter?</button>
         <button class="suggestion-chip" onclick="askQuestion(this, 'Was kostet der Kurs?')">Was kostet der Kurs?</button>
-        <button class="suggestion-chip" onclick="askQuestion(this, 'Wann und wo findet der Kurs statt?')">Wann & wo findet der Kurs statt?</button>
-        <button class="suggestion-chip" onclick="askQuestion(this, 'Was muss mein Kind mitbringen?')">Was soll mein Kind mitbringen?</button>
-        <button class="suggestion-chip" onclick="askQuestion(this, 'Braucht mein Kind Vorkenntnisse?')">Sind Vorkenntnisse nötig?</button>
-        <button class="suggestion-chip" onclick="askQuestion(this, 'Wie kann ich mein Kind anmelden?')">Wie kann ich mein Kind anmelden?</button>
+        <button class="suggestion-chip" onclick="askQuestion(this, 'Wann und wo findet der Kurs statt?')">Wann & wo?</button>
+        <button class="suggestion-chip" onclick="askQuestion(this, 'Was muss mein Kind mitbringen?')">Was mitbringen?</button>
+        <button class="suggestion-chip" onclick="askQuestion(this, 'Braucht mein Kind Vorkenntnisse?')">Vorkenntnisse nötig?</button>
+        <button class="suggestion-chip" onclick="askQuestion(this, 'Wie kann ich mein Kind anmelden?')">Wie anmelden?</button>
       </div>
 
       <!-- Free-text input -->
@@ -2242,6 +2243,30 @@
       loadJSON('/_data/kurs.json'), loadJSON('/_data/ueber.json'),
       loadJSON('/_data/faq.json'), loadJSON('/_data/kontakt.json')
     ]);
+
+    // ── ÜBER TAMARA ──────────────────────────────────────────────
+    if (ueber) {
+      if (ueber.foto) {
+        const img = document.getElementById('tamara-foto');
+        const placeholder = document.getElementById('ueber-placeholder');
+        if (img) {
+          img.src = ueber.foto;
+          img.style.display = 'block';
+          img.onload = function() {
+            if (placeholder) placeholder.style.display = 'none';
+          };
+          img.onerror = function() {
+            img.style.display = 'none';
+            if (placeholder) placeholder.style.display = 'flex';
+          };
+        }
+      }
+      setText('[data-cms="ueber-text1"]', ueber.text1);
+      setText('[data-cms="ueber-text2"]', ueber.text2);
+      setText('[data-cms="ueber-text3"]', ueber.text3);
+      setText('[data-cms="ueber-signatur"]', ueber.signatur);
+    }
+
     if (kurs && kurs.details) {
       setText('[data-cms="kurs-zeitraum"]', kurs.details.zeitraum);
       setText('[data-cms="kurs-startdatum"]', kurs.details.startdatum);
