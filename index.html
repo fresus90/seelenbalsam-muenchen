@@ -1228,6 +1228,12 @@
     font-size: 0.85rem;
     text-decoration: none;
     transition: all 0.3s;
+    flex-shrink: 0;
+  }
+  .social-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
   }
   .social-btn:hover {
     background: var(--terracotta);
@@ -1896,9 +1902,25 @@
         <span class="logo-text" style="color: var(--terracotta-light);">SEELENBALSAM</span>
         <p>Ganzheitliche Bewegung für Kinder in München. Ein Ort, an dem sich Kinder frei entfalten, bewegen und in Balance kommen dürfen.</p>
         <div class="footer-social">
-          <a href="#" class="social-btn">IG</a>
-          <a href="/cdn-cgi/l/email-protection#9eedfbfbf2fbf0fcfff2edfff3b0f3ebfbf0fdf6fbf0def9f3fff7f2b0fdf1f3" class="social-btn">✉</a>
-          <a href="https://wa.me/4915752129991" class="social-btn">💬</a>
+          <a href="https://www.instagram.com/seelenbalsam_bytamara" target="_blank" rel="noopener" class="social-btn" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="2" width="20" height="20" rx="5.5" stroke="currentColor" stroke-width="2"/>
+              <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="2"/>
+              <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor"/>
+            </svg>
+          </a>
+          <a href="mailto:seelenbalsam.muenchen@gmail.com" class="social-btn" aria-label="E-Mail">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4" width="20" height="16" rx="3" stroke="currentColor" stroke-width="2"/>
+              <path d="M2 8l10 7 10-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </a>
+          <a href="https://wa.me/4915752129991" target="_blank" rel="noopener" class="social-btn" aria-label="WhatsApp">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0012 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M8.5 9.5c.5 1 1.5 3 3.5 4.5s3.5 2 4.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </a>
         </div>
       </div>
       <div class="footer-col">
