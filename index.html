@@ -2328,9 +2328,11 @@
       const chipsContainer = document.getElementById('chat-suggestions');
       if (chipsContainer) {
         chipsContainer.innerHTML = faq.eintraege.map(function(e) {
-          const q = (e.frage||'').replace(/'/g,"\\'");
-          return '<button class="suggestion-chip" onclick="askQuestion(this,\''+q+'\')">'+(e.chip||e.frage)+'</button>';
+          return '<button class="suggestion-chip" data-frage="' + (e.frage||'').replace(/"/g,'&quot;') + '">'+(e.chip||e.frage)+'</button>';
         }).join('');
+        chipsContainer.querySelectorAll('.suggestion-chip').forEach(function(btn) {
+          btn.addEventListener('click', function() { askQuestion(this, this.dataset.frage); });
+        });
       }
       faq.eintraege.forEach(function(e) { FAQ_ANSWERS[e.frage] = e.antwort; });
     }
