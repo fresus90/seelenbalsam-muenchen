@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seelenbalsam – Ganzheitliche Bewegung für Kinder</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="/favicon.ico" id="favicon-ico">
+<link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32.png" id="favicon-32">
+<link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16.png" id="favicon-16">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" id="favicon-apple">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1678,7 +1684,7 @@
     </div>
 
     <!-- Was ich biete -->
-    <div class="kurs-cards">
+    <div class="kurs-cards" id="kurs-cards">
       <div class="kurs-card">
         <div class="kurs-card-icon">🌿</div>
         <h3>Achtsame Bewegung</h3>
@@ -2244,6 +2250,15 @@
       loadJSON('/_data/faq.json'), loadJSON('/_data/kontakt.json')
     ]);
 
+    // ── BILDER / FAVICON ─────────────────────────────────────────
+    const bilder = await loadJSON('/_data/bilder.json');
+    if (bilder && bilder.favicon) {
+      ['favicon-ico','favicon-32','favicon-16','favicon-apple'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.href = bilder.favicon;
+      });
+    }
+
     // ── ÜBER TAMARA ──────────────────────────────────────────────
     if (ueber) {
       if (ueber.foto) {
@@ -2274,6 +2289,18 @@
       setText('[data-cms="kurs-ort-adresse"]', kurs.details.ort_adresse);
       setText('[data-cms="kurs-preis"]', kurs.details.preis);
       setText('[data-cms="kurs-dauer"]', kurs.details.dauer);
+    }
+    if (kurs && kurs.karten && kurs.karten.length) {
+      var kartenContainer = document.getElementById('kurs-cards');
+      if (kartenContainer) {
+        kartenContainer.innerHTML = kurs.karten.map(function(k) {
+          return '<div class="kurs-card">' +
+            '<div class="kurs-card-icon">' + (k.icon || '🌿') + '</div>' +
+            '<h3>' + (k.titel || '') + '</h3>' +
+            '<p>' + (k.text || '') + '</p>' +
+            '</div>';
+        }).join('');
+      }
     }
     if (faq && faq.eintraege && faq.eintraege.length) {
       const chipsContainer = document.getElementById('chat-suggestions');
