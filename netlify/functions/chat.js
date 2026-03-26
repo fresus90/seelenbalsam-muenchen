@@ -1,15 +1,14 @@
 // Cloudflare Pages Function: functions/chat.js
-// Pfad muss genau so sein: /functions/chat.js im Repository-Root
+// Automatisch verfügbar unter /chat bei Cloudflare Pages
 
 const ALLOWED_ORIGIN = 'https://seelenbalsam-muenchen.de';
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 500;
 
 // Einfaches In-Memory Rate Limiting (pro Worker-Instanz)
-// Für robusteres Rate Limiting: Cloudflare KV verwenden
 const rateLimitMap = new Map();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 Minute
-const RATE_LIMIT_MAX_REQUESTS = 10; // max 10 Anfragen pro Minute pro IP
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 10;
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -24,7 +23,6 @@ function isRateLimited(ip) {
 
   rateLimitMap.set(ip, entry);
 
-  // Map bereinigen um Memory Leak zu vermeiden
   if (rateLimitMap.size > 1000) {
     for (const [key, val] of rateLimitMap) {
       if (now > val.resetAt) rateLimitMap.delete(key);
@@ -46,18 +44,15 @@ function corsHeaders(origin) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  // CORS Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(request.headers.get('Origin')) });
   }
 
-  // Origin prüfen
   const origin = request.headers.get('Origin') || '';
   if (origin !== ALLOWED_ORIGIN) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
   }
 
-  // Rate Limiting
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   if (isRateLimited(ip)) {
     return new Response(JSON.stringify({ error: 'Zu viele Anfragen – bitte kurz warten.' }), {
@@ -66,7 +61,6 @@ export async function onRequestPost(context) {
     });
   }
 
-  // API-Key aus Cloudflare Environment Variables
   const apiKey = env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return new Response(JSON.stringify({ error: 'API key nicht konfiguriert' }), {
@@ -75,7 +69,6 @@ export async function onRequestPost(context) {
     });
   }
 
-  // Request Body parsen
   let body;
   try {
     body = await request.json();
@@ -88,7 +81,6 @@ export async function onRequestPost(context) {
 
   const { messages } = body;
 
-  // Validierung
   if (!messages || !Array.isArray(messages)) {
     return new Response(JSON.stringify({ error: 'Ungültige Anfrage' }), {
       status: 400,
@@ -102,7 +94,6 @@ export async function onRequestPost(context) {
     });
   }
 
-  // Nachrichten-Länge prüfen
   for (const msg of messages) {
     if (typeof msg.content === 'string' && msg.content.length > MAX_MESSAGE_LENGTH) {
       return new Response(JSON.stringify({ error: 'Nachricht zu lang' }), {
@@ -116,11 +107,10 @@ export async function onRequestPost(context) {
   let wissen = {};
   try {
     const wissenUrl = 'https://raw.githubusercontent.com/fresus90/seelenbalsam-muenchen/main/_data/wissensdatenbank.json';
-    const wissenRes = await fetch(wissenUrl, { cf: { cacheTtl: 300 } }); // 5 Min. cachen
+    const wissenRes = await fetch(wissenUrl, { cf: { cacheTtl: 300 } });
     if (wissenRes.ok) wissen = await wissenRes.json();
   } catch (e) {
     console.error('Wissensdatenbank Fehler:', e.message);
-    // Fallback: aus Environment Variable
     try {
       const wissenRaw = env.WISSENSDATENBANK;
       if (wissenRaw) wissen = JSON.parse(wissenRaw);
@@ -203,7 +193,6 @@ Wenn du etwas nicht weisst: freundlich sagen und WhatsApp empfehlen. Nichts erfi
   }
 }
 
-// OPTIONS Handler für CORS Preflight
 export async function onRequestOptions(context) {
   return new Response(null, {
     status: 204,
