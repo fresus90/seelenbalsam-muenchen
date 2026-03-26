@@ -16,7 +16,7 @@
     --cream: #FAF7F3;
     --warm-white: #FDF9F5;
     --sand: #E8DDD0;
-    --terracotta: #C4906A; 
+    --terracotta: #C4906A;
     --terracotta-light: #D4A882;
     --taupe: #B09A88;
     --brown-text: #6B4F3A;
@@ -2133,8 +2133,8 @@
     const tid = showTyping();
     setLoading(true);
     try {
-      // Ruft die sichere Netlify Function auf – API-Key bleibt serverseitig, nie im Browser
-      const res = await fetch('/.netlify/functions/chat', {
+      // Ruft die sichere Cloudflare Function auf – API-Key bleibt serverseitig, nie im Browser
+      const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ messages: chatHistory })
