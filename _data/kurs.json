@@ -2,6 +2,23 @@
   "beschreibung_kurz": "Spielerisch. Achtsam. Aus ganzem Herzen. Wo Kinder sich frei entfalten und in Balance kommen dürfen.",
   "beschreibung_lang": "Bei Seelenbalsam – Ganzheitliche Bewegung für Kinder bietet Tamara vielseitige Kurse, in denen Kinder die Kraft der Bewegung und Achtsamkeit entdecken können. Mein Ansatz ist es, die Individualität und Kreativität jedes Kindes zu fördern.\n\nIn einer wertschätzenden Atmosphäre stärke ich das Selbstbewusstsein der Kinder und helfe ihnen, ihre körperlichen Fähigkeiten ganzheitlich zu entwickeln.",
   "zitat": "Ich bin genau richtig, so wie ich bin.",
+  "karten": [
+    {
+      "icon": "🌿",
+      "titel": "Achtsame Bewegung",
+      "text": "Jede Stunde lädt Kinder ein, ihren Körper bewusst zu spüren und sich frei zu bewegen – ohne Druck, im eigenen Tempo."
+    },
+    {
+      "icon": "✨",
+      "titel": "Kreativität & Ausdruck",
+      "text": "Durch spielerische Übungen, Musik und Bewegungsgeschichten entfaltet sich die natürliche Kreativität jedes Kindes."
+    },
+    {
+      "icon": "🤍",
+      "titel": "Kleine Gruppe",
+      "text": "Max. 10 Kinder pro Kurs – so bekommt jedes Kind die individuelle Aufmerksamkeit und den Raum, den es verdient."
+    }
+  ],
   "details": {
     "zeitraum": "Donnerstags 16:00 – 16:45 Uhr",
     "startdatum": "ab 08. Mai 2025",
