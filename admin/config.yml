@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: fresus90/seelenbalsam-muenchen   # ← hier GitHub-Username eintragen
+  repo: fresus90/seelenbalsam-muenchen
   branch: main
   base_url: https://api.netlify.com
   auth_endpoint: auth
@@ -26,6 +26,16 @@ collections:
               hint: "Ausführlicher Text im Kurs-Abschnitt." }
           - { label: "Zitat / Leitsatz", name: "zitat", widget: "string",
               hint: "z.B. »Ich bin genau richtig, so wie ich bin.«" }
+          - label: "Feature-Karten (3 Karten im Kurs-Bereich)"
+            name: "karten"
+            widget: "list"
+            min: 1
+            max: 6
+            fields:
+              - { label: "Icon (Emoji)", name: "icon", widget: "string",
+                  hint: "Ein einzelnes Emoji, z.B. 🌿 ✨ 🤍 🌸 🎵 🌈 – einfach reinkopieren." }
+              - { label: "Titel", name: "titel", widget: "string" }
+              - { label: "Beschreibung", name: "text", widget: "text" }
           - label: "Kursdetails"
             name: "details"
             widget: "object"
@@ -77,6 +87,8 @@ collections:
         label: "Hero & Galerie"
         file: "_data/bilder.json"
         fields:
+          - { label: "Favicon (Browser-Icon)", name: "favicon", widget: "image",
+              hint: "Erscheint als kleines Icon im Browser-Tab. Empfohlen: quadratisches PNG, mind. 64×64 px. Standard ist das Seelenbalsam-Logo." }
           - { label: "Hero-Hintergrundbild", name: "hero_bg", widget: "image",
               hint: "Großes Bild ganz oben. Empfohlen: 1920×1080 px, JPG." }
           - label: "Galerie (optional)"
