@@ -112,13 +112,19 @@ export async function onRequestPost(context) {
     }
   }
 
-  // Wissensdatenbank laden (aus _data/wissensdatenbank.json via env oder hardcoded fallback)
+  // Wissensdatenbank laden – direkt aus GitHub, immer aktuell
   let wissen = {};
   try {
-    const wissenRaw = env.WISSENSDATENBANK;
-    if (wissenRaw) wissen = JSON.parse(wissenRaw);
+    const wissenUrl = 'https://raw.githubusercontent.com/fresus90/seelenbalsam-muenchen/main/_data/wissensdatenbank.json';
+    const wissenRes = await fetch(wissenUrl, { cf: { cacheTtl: 300 } }); // 5 Min. cachen
+    if (wissenRes.ok) wissen = await wissenRes.json();
   } catch (e) {
     console.error('Wissensdatenbank Fehler:', e.message);
+    // Fallback: aus Environment Variable
+    try {
+      const wissenRaw = env.WISSENSDATENBANK;
+      if (wissenRaw) wissen = JSON.parse(wissenRaw);
+    } catch(e2) {}
   }
 
   const ta = wissen.tamara || {};
