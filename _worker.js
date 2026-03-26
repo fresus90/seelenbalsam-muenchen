@@ -1,15 +1,24 @@
 // _worker.js – Cloudflare Pages Advanced Mode
-// Liegt direkt im Root und handled alle Anfragen
-// /chat → Chat-Bot Function
-// alle anderen → statische Assets
 
-const ALLOWED_ORIGIN = 'https://seelenbalsam-muenchen.de';
+const ALLOWED_ORIGINS = [
+  'https://seelenbalsam-muenchen.de',
+  'https://www.seelenbalsam-muenchen.de',
+  'https://seelenbalsam-muenchen.pages.dev',
+];
 const MAX_MESSAGES = 20;
 const MAX_MESSAGE_LENGTH = 500;
-
-const rateLimitMap = new Map();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 10;
+const rateLimitMap = new Map();
+
+function corsHeaders(origin) {
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  };
+}
 
 function isRateLimited(ip) {
   const now = Date.now();
@@ -23,27 +32,16 @@ function isRateLimited(ip) {
   return entry.count > RATE_LIMIT_MAX_REQUESTS;
 }
 
-function corsHeaders(origin) {
-  const allowed = origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN;
-  return {
-    'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-}
-
 async function handleChat(request, env) {
   const origin = request.headers.get('Origin') || '';
 
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsHeaders(origin) });
   }
-
   if (request.method !== 'POST') {
     return new Response('Method Not Allowed', { status: 405 });
   }
-
-  if (origin !== ALLOWED_ORIGIN) {
+  if (!ALLOWED_ORIGINS.includes(origin)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
   }
 
@@ -63,7 +61,9 @@ async function handleChat(request, env) {
 
   let body;
   try { body = await request.json(); }
-  catch (e) { return new Response(JSON.stringify({ error: 'Ungültiges JSON' }), { status: 400, headers: corsHeaders(origin) }); }
+  catch (e) {
+    return new Response(JSON.stringify({ error: 'Ungültiges JSON' }), { status: 400, headers: corsHeaders(origin) });
+  }
 
   const { messages } = body;
   if (!messages || !Array.isArray(messages) || messages.length > MAX_MESSAGES) {
@@ -147,13 +147,9 @@ Wenn du etwas nicht weißt: freundlich sagen und WhatsApp empfehlen. Nichts erfi
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    // /chat Route → Chat-Bot
     if (url.pathname === '/chat') {
       return handleChat(request, env);
     }
-
-    // Alle anderen Routen → statische Assets
     return env.ASSETS.fetch(request);
   }
 };
