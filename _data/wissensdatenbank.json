@@ -1,0 +1,40 @@
+{
+  "tamara": {
+    "name": "Tamara Möhwald",
+    "beruf": "Kinderpädagogin",
+    "standort": "München",
+    "beschreibung": "Seelenbalsam ist meine Herzensangelegenheit – ein Ort, an dem sich Kinder frei entfalten, bewegen und in Balance kommen können. Mit einer Mischung aus pädagogischem Fachwissen, Kreativität und einem tiefen Verständnis für die Bedürfnisse von Kindern begleite ich jedes Kind individuell.",
+    "zitat": "Bewegung ist der Tanz, in dem du die Welt entdeckst und dich selbst findest."
+  },
+  "kurs": {
+    "name": "Seelenbalsam – Ganzheitliche Bewegung für Kinder",
+    "zielgruppe": "Kinder ab 2 bis ca. 8 Jahre",
+    "philosophie": "Ganzheitliche Bewegung, Achtsamkeit, Selbstvertrauen stärken, Körperbewusstsein fördern. Jedes Kind ist genau richtig so wie es ist.",
+    "leitsatz": "Ich bin genau richtig, so wie ich bin.",
+    "inhalte": "Kreative Bewegungsübungen, Musik, Bewegungsgeschichten, Achtsamkeitsimpulse, spielerische Elemente",
+    "kursdauer": "8 Wochen, einmal pro Woche, 45 Minuten pro Einheit",
+    "max_kinder": "Maximal 10 Kinder pro Gruppe",
+    "vorkenntnisse": "Keine Vorkenntnisse nötig – jedes Kind wird dort abgeholt wo es gerade steht"
+  },
+  "termine": [
+    {
+      "bezeichnung": "Aktueller Kurs",
+      "wochentag": "Donnerstags",
+      "uhrzeit": "16:00 – 16:45 Uhr",
+      "startdatum": "ab 08. Mai 2025",
+      "ort_name": "Bewegungsraum Villa Verte",
+      "ort_adresse": "Hans-Mielich-Str. 8, 81543 München",
+      "preis": "150 €",
+      "anmeldung": "Jederzeit möglich"
+    }
+  ],
+  "mitbringen": "Wasserflasche und Stoppersocken. Jacke und Straßenschuhe werden am Eingang abgelegt. Tamara begleitet die Kinder persönlich zur Kurstür – Eltern können sich dann entspannt zurückziehen.",
+  "kontakt": {
+    "telefon": "+49 157 52129991",
+    "whatsapp": "+49 157 52129991",
+    "email": "seelenbalsam.muenchen@gmail.com",
+    "hinweis": "Tamara bevorzugt Kommunikation per WhatsApp"
+  },
+  "anmeldung_info": "Anmeldung über das Formular auf der Website oder direkt per WhatsApp. Die Teilnehmerzahl ist auf 10 Kinder begrenzt – frühzeitige Anmeldung empfohlen.",
+  "zusatz_infos": ""
+}
