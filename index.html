@@ -2248,11 +2248,29 @@
   function setHTML(sel, val) { if (!val) return; const el = document.querySelector(sel); if (el) el.innerHTML = val; }
   function setAttr(sel, attr, val) { if (!val) return; const el = document.querySelector(sel); if (el) el.setAttribute(attr, val); }
 
-  async function initCMS() {
-    const [kurs, ueber, faq, kontakt] = await Promise.all([
-      loadJSON('/_data/kurs.json'), loadJSON('/_data/ueber.json'),
-      loadJSON('/_data/faq.json'), loadJSON('/_data/kontakt.json')
-    ]);
+const [kurs, ueber, faq, kontakt, impressum] = await Promise.all([
+  loadJSON('/_data/kurs.json'), loadJSON('/_data/ueber.json'),
+  loadJSON('/_data/faq.json'), loadJSON('/_data/kontakt.json'),
+  loadJSON('/_data/impressum.json')
+]);
+
+// ── IMPRESSUM ────────────────────────────────────────────────
+if (impressum) {
+  setText('#imp-name', impressum.name);
+  setText('#imp-name2', impressum.name);
+  setText('#imp-strasse', impressum.strasse);
+  setText('#imp-strasse2', impressum.strasse);
+  setText('#imp-plz-ort', impressum.plz_ort);
+  setText('#imp-plz-ort2', impressum.plz_ort);
+  setText('#imp-telefon', impressum.telefon);
+  setText('#imp-ust', impressum.ust);
+  setText('#imp-beruf', impressum.beruf);
+  if (impressum.email) {
+    setText('#imp-email', impressum.email);
+    const link = document.getElementById('imp-email-link');
+    if (link) link.href = 'mailto:' + impressum.email;
+  }
+}
 
     // ── BILDER / FAVICON ─────────────────────────────────────────
     const bilder = await loadJSON('/_data/bilder.json');
