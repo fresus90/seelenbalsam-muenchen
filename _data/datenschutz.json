@@ -1,7 +1,7 @@
 {
-  "hosting": "Netlify, Inc., 512 2nd Street, San Francisco, CA 94107, USA",
-  "google_fonts": "Über Google CDN (externe Anfrage)",
-  "formular_anbieter": "",
+  "hosting": "Cloudflare Pages, Cloudflare Inc., 101 Townsend St, San Francisco, CA 94107, USA",
+  "google_fonts": "Über Google Fonts CDN (externe Anfrage an Google-Server)",
+  "formular_anbieter": "Gmail (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland)",
   "datum": "[ Datum eintragen ]",
   "zusatz": ""
 }
