@@ -26,7 +26,7 @@ collections:
               hint: "Ausführlicher Text im Kurs-Abschnitt." }
           - { label: "Zitat / Leitsatz", name: "zitat", widget: "string",
               hint: "z.B. »Ich bin genau richtig, so wie ich bin.«" }
-          - label: "Feature-Karten (3 Karten im Kurs-Bereich)"
+          - label: "Feature-Karten (Punkte im Kurs-Bereich)"
             name: "karten"
             widget: "list"
             min: 1
@@ -49,11 +49,13 @@ collections:
               - { label: "Ort (Adresse)", name: "ort_adresse", widget: "string",
                   hint: "z.B. Hans-Mielich-Str. 8, 81543 München" }
               - { label: "Preis", name: "preis", widget: "string",
-                  hint: "z.B. 150 €" }
+                  hint: "z.B. 180 €" }
               - { label: "Kursdauer", name: "dauer", widget: "string",
                   hint: "z.B. 8 Wochen Kurs" }
               - { label: "Max. Teilnehmer", name: "max_kinder", widget: "string",
                   hint: "z.B. max. 10 Kinder pro Gruppe" }
+              - { label: "Teilnahme", name: "teilnahme", widget: "string", required: false,
+                  hint: "z.B. Teilnahme ohne Eltern – die Kinder gehen allein in den Kursraum." }
           - label: "Ziele (4 Punkte)"
             name: "ziele"
             widget: "list"
@@ -89,8 +91,9 @@ collections:
         fields:
           - { label: "Favicon (Browser-Icon)", name: "favicon", widget: "image",
               hint: "Erscheint als kleines Icon im Browser-Tab. Empfohlen: quadratisches PNG, mind. 64×64 px. Standard ist das Seelenbalsam-Logo." }
-          - { label: "Hero-Hintergrundbild", name: "hero_bg", widget: "image",
-              hint: "Großes Bild ganz oben. Empfohlen: 1920×1080 px, JPG." }
+          - { label: "Hero-Hintergrundbild (derzeit ohne Wirkung)", name: "hero_bg", widget: "image",
+              required: false,
+              hint: "Der Hero-Bereich nutzt aktuell das Farb-/Formen-Design ohne Foto. Feld bleibt für später bestehen." }
           - label: "Galerie (optional)"
             name: "galerie"
             widget: "list"
@@ -118,6 +121,38 @@ collections:
                   hint: "z.B. »Was kostet der Kurs?« – erscheint als klickbarer Chip." }
               - { label: "Frage (vollständig)", name: "frage", widget: "string" }
               - { label: "Antwort", name: "antwort", widget: "text" }
+
+  # ─── REZENSIONEN ───────────────────────────────────────────────
+  - name: "rezensionen"
+    label: "Rezensionen von Eltern"
+    files:
+      - name: "rezensionen"
+        label: "Rezensionen"
+        file: "_data/rezensionen.json"
+        fields:
+          - { label: "Überschrift", name: "ueberschrift", widget: "string",
+              hint: "z.B. Was Eltern sagen" }
+          - { label: "Einleitungstext", name: "einleitung", widget: "text",
+              hint: "Kurzer Text über den Rezensionen." }
+          - { label: "Button-Text", name: "button_text", widget: "string", required: false,
+              hint: "z.B. Rezension schreiben" }
+          - { label: "Google-Bewertungslink (optional)", name: "google_url", widget: "string",
+              required: false,
+              hint: "Link zum Google-Unternehmensprofil. Leer lassen, wenn es keinen gibt – der Button wird dann ausgeblendet." }
+          - label: "Veröffentlichte Rezensionen"
+            name: "eintraege"
+            widget: "list"
+            required: false
+            min: 0
+            max: 30
+            fields:
+              - { label: "Name (nur Vorname veröffentlichen!)", name: "name", widget: "string",
+                  hint: "z.B. Lena M. – nur mit Einverständnis der Eltern veröffentlichen." }
+              - { label: "Kind / Zusatz", name: "kind", widget: "string", required: false,
+                  hint: "z.B. Mama von Mia (4)" }
+              - { label: "Sterne (1–5)", name: "sterne", widget: "number",
+                  default: 5, min: 1, max: 5, value_type: "int" }
+              - { label: "Rezensionstext", name: "text", widget: "text" }
 
   # ─── KONTAKT ───────────────────────────────────────────────────
   - name: "kontakt"
@@ -205,6 +240,7 @@ collections:
               - { label: "Kursdauer", name: "kursdauer", widget: "string" }
               - { label: "Max. Kinder", name: "max_kinder", widget: "string" }
               - { label: "Vorkenntnisse", name: "vorkenntnisse", widget: "string" }
+              - { label: "Teilnahme (mit/ohne Eltern)", name: "teilnahme", widget: "text", required: false }
 
           - label: "Aktuelle Termine"
             name: "termine"
@@ -223,12 +259,14 @@ collections:
               - { label: "Ort Name", name: "ort_name", widget: "string" }
               - { label: "Ort Adresse", name: "ort_adresse", widget: "string" }
               - { label: "Preis", name: "preis", widget: "string",
-                  hint: "z.B. 150 €" }
+                  hint: "z.B. 180 €" }
               - { label: "Anmeldung", name: "anmeldung", widget: "string",
                   hint: "z.B. Jederzeit möglich" }
 
           - { label: "Was mitbringen", name: "mitbringen", widget: "text" }
           - { label: "Anmeldungs-Info", name: "anmeldung_info", widget: "text" }
+          - { label: "Rezensionen-Info", name: "rezensionen", widget: "text", required: false,
+              hint: "Was der Chat-Bot antworten soll, wenn Eltern nach Bewertungen fragen." }
 
           - label: "Kontakt"
             name: "kontakt"

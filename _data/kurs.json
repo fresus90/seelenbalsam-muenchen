@@ -17,6 +17,11 @@
       "icon": "🤍",
       "titel": "Kleine Gruppe",
       "text": "Max. 10 Kinder pro Kurs – so bekommt jedes Kind die individuelle Aufmerksamkeit und den Raum, den es verdient."
+    },
+    {
+      "icon": "👋",
+      "titel": "Teilnahme ohne Eltern",
+      "text": "Die Kinder nehmen allein am Kurs teil – ich hole sie an der Tür ab und bringe sie danach wieder zu euch zurück. So entsteht Raum für Selbstständigkeit, und ihr könnt die 45 Minuten entspannt für euch nutzen."
     }
   ],
   "details": {
@@ -26,7 +31,8 @@
     "ort_adresse": "Hans-Mielich-Str. 8, 81543 München",
     "preis": "180 €",
     "dauer": "8 Wochen Kurs",
-    "max_kinder": "max. 10 Kinder pro Gruppe"
+    "max_kinder": "max. 10 Kinder pro Gruppe",
+    "teilnahme": "Teilnahme ohne Eltern – die Kinder gehen allein in den Kursraum."
   },
   "ziele": [
     {

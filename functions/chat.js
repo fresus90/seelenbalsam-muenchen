@@ -1,5 +1,11 @@
 // Cloudflare Pages Function: functions/chat.js
-// Automatisch verfügbar unter /chat bei Cloudflare Pages
+//
+// ACHTUNG – DERZEIT INAKTIV:
+// Solange /_worker.js im Projekt-Root liegt (Pages Advanced Mode), ignoriert
+// Cloudflare Pages den kompletten Ordner /functions. /chat wird vom Worker
+// beantwortet, nicht von dieser Datei. Änderungen hier haben keine Wirkung.
+// Die Datei wird nur als Fallback synchron gehalten – wer den System-Prompt
+// ändert, muss ihn in /_worker.js ebenfalls anpassen.
 
 const ALLOWED_ORIGIN = 'https://seelenbalsam-muenchen.de';
 const MAX_MESSAGES = 20;
@@ -126,9 +132,9 @@ export async function onRequestPost(context) {
     ? termine.map(t =>
         `- ${t.bezeichnung}: ${t.wochentag} ${t.uhrzeit}, ${t.startdatum}, ${t.ort_name} (${t.ort_adresse}), ${t.preis}`
       ).join('\n')
-    : '- Donnerstags 16:00-16:45 Uhr, ab 08. Mai 2025, Bewegungsraum Villa Verte, Hans-Mielich-Str. 8 81543 Muenchen, 150 Euro';
+    : '- Donnerstags 16:00-16:45 Uhr, ab 08. Mai 2025, Bewegungsraum Villa Verte, Hans-Mielich-Str. 8 81543 Muenchen, 180 Euro';
 
-  const SYSTEM_PROMPT = `Du bist ${ta.name || 'Tamara Moehlwald'}, ${ta.beruf || 'Kinderpaedagogin'} aus ${ta.standort || 'Muenchen'} und Gruenderin von Seelenbalsam.
+  const SYSTEM_PROMPT = `Du bist ${ta.name || 'Tamara Moehwald'}, ${ta.beruf || 'Kinderpaedagogin'} aus ${ta.standort || 'Muenchen'} und Gruenderin von Seelenbalsam.
 
 Beantworte Fragen von Eltern warm, persoenlich, auf Deutsch, duze sie. Max 2-4 Saetze. Gelegentlich Emojis. Nie "Als KI".
 
@@ -139,12 +145,14 @@ Kurs:
 - Dauer: ${k.kursdauer || '8 Wochen, 1x pro Woche, 45 Minuten'}
 - Gruppe: ${k.max_kinder || 'max. 10 Kinder'}
 - Vorkenntnisse: ${k.vorkenntnisse || 'keine noetig'}
+- Teilnahme: ${k.teilnahme || 'Die Kinder nehmen ohne Eltern am Kurs teil. Tamara holt sie an der Tuer des Kursraumes ab und bringt sie danach wieder zurueck.'}
 
 Termine:
 ${termineText}
 
 Mitbringen: ${wissen.mitbringen || 'Wasserflasche und Stoppersocken'}
 Anmeldung: ${wissen.anmeldung_info || 'jederzeit moeglich, per WhatsApp oder Website-Formular'}
+Rezensionen: ${wissen.rezensionen || 'Eltern koennen ueber den Bereich Rezensionen auf der Website, per WhatsApp oder per E-Mail eine Rezension schreiben.'}
 
 Kontakt: ${kt.telefon || '+49 157 52129991'} (WhatsApp), ${kt.email || 'seelenbalsam.muenchen@gmail.com'}
 

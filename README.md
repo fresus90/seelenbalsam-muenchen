@@ -19,7 +19,11 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 
 ```
 /
-├── index.html          # Haupt-Website
+├── index.html          # Haupt-Website (Onepager)
+├── impressum.html      # Impressum – eigene Seite unter /impressum
+├── datenschutz.html    # Datenschutzerklärung – eigene Seite unter /datenschutz
+├── legal.css           # Styling der beiden Rechtstexte-Seiten
+├── _worker.js          # Cloudflare Pages Worker (aktiv, beantwortet /chat)
 ├── README.md           # Diese Datei
 ├── admin/
 │   ├── index.html      # Decap CMS Admin-Panel
@@ -31,6 +35,7 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 │   ├── ueber.json      # Über Tamara, Foto
 │   ├── bilder.json     # Hero-Bild, Galerie, Favicon
 │   ├── faq.json        # FAQ-Einträge
+│   ├── rezensionen.json # Rezensionen von Eltern + Link zum Bewerten
 │   ├── kontakt.json    # Telefon, E-Mail, Instagram
 │   ├── impressum.json  # Impressum-Pflichtangaben
 │   ├── datenschutz.json
@@ -47,12 +52,33 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 
 ## Chat-Bot
 
-Der FAQ-Chat nutzt eine Cloudflare Pages Function (`/functions/chat.js`),
-die Anfragen an die Anthropic Claude API weiterleitet. Der API-Key wird
+Der FAQ-Chat wird von `/_worker.js` beantwortet (Cloudflare Pages Advanced Mode),
+das Anfragen an die Anthropic Claude API weiterleitet.
+
+> **Achtung:** Solange `_worker.js` im Projekt-Root liegt, ignoriert Cloudflare Pages
+> den Ordner `/functions` komplett. `functions/chat.js` ist damit **inaktiv** und nur
+> als Fallback vorhanden – Änderungen dort haben keine Wirkung. Beide Dateien werden
+> bewusst synchron gehalten; wer den System-Prompt ändert, muss beide anfassen. Der API-Key wird
 als Environment Variable in Cloudflare gespeichert und ist nie im Browser sichtbar.
 
 Die Wissensdatenbank für den Bot wird aus `/_data/wissensdatenbank.json` geladen
 und kann über das Admin-Panel gepflegt werden.
+
+## Rechtstexte
+
+Impressum und Datenschutzerklärung sind **eigene Seiten** (`/impressum`, `/datenschutz`)
+und funktionieren auch ohne JavaScript – Pflichtangaben müssen dauerhaft und direkt
+verlinkbar erreichbar sein. Die Inhalte kommen weiterhin aus
+`_data/impressum.json` und `_data/datenschutz.json`.
+
+## Offene Punkte
+
+- **Kursdatum:** `_data/kurs.json` und `_data/wissensdatenbank.json` nennen weiterhin
+  »ab 08. Mai 2025«. Das sollte auf den nächsten tatsächlichen Kursstart aktualisiert werden.
+- **Admin-Login:** `admin/config.yml` nutzt `base_url: https://api.netlify.com`. Dieser
+  OAuth-Broker funktioniert nur für Seiten, die bei Netlify gehostet werden. Für Cloudflare
+  Pages braucht es einen eigenen GitHub-OAuth-Endpunkt (z.B. einen kleinen Worker), sonst
+  schlägt der Login unter `/admin` fehl.
 
 ## Kontakt
 

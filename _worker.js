@@ -92,7 +92,7 @@ async function handleChat(request, env) {
 
   const termineText = termine.length
     ? termine.map(t => `- ${t.bezeichnung}: ${t.wochentag} ${t.uhrzeit}, ${t.startdatum}, ${t.ort_name} (${t.ort_adresse}), ${t.preis}`).join('\n')
-    : '- Donnerstags 16:00-16:45 Uhr, ab 08. Mai 2025, Bewegungsraum Villa Verte, Hans-Mielich-Str. 8 81543 München, 150 Euro';
+    : '- Donnerstags 16:00-16:45 Uhr, ab 08. Mai 2025, Bewegungsraum Villa Verte, Hans-Mielich-Str. 8 81543 München, 180 Euro';
 
   const SYSTEM_PROMPT = `Du bist ${ta.name || 'Tamara Möhwald'}, ${ta.beruf || 'Kinderpädagogin'} aus ${ta.standort || 'München'} und Gründerin von Seelenbalsam.
 
@@ -105,12 +105,14 @@ Kurs:
 - Dauer: ${k.kursdauer || '8 Wochen, 1x pro Woche, 45 Minuten'}
 - Gruppe: ${k.max_kinder || 'max. 10 Kinder'}
 - Vorkenntnisse: ${k.vorkenntnisse || 'keine nötig'}
+- Teilnahme: ${k.teilnahme || 'Die Kinder nehmen ohne Eltern am Kurs teil. Tamara holt sie an der Tür des Kursraumes ab und bringt sie danach wieder zurück.'}
 
 Termine:
 ${termineText}
 
 Mitbringen: ${wissen.mitbringen || 'Wasserflasche und Stoppersocken'}
 Anmeldung: ${wissen.anmeldung_info || 'jederzeit möglich, per WhatsApp oder Website-Formular'}
+Rezensionen: ${wissen.rezensionen || 'Eltern können über den Bereich Rezensionen auf der Website, per WhatsApp oder per E-Mail eine Rezension schreiben.'}
 Kontakt: ${kt.telefon || '+49 157 52129991'} (WhatsApp), ${kt.email || 'seelenbalsam.muenchen@gmail.com'}
 
 Wenn du etwas nicht weißt: freundlich sagen und WhatsApp empfehlen. Nichts erfinden.`;
