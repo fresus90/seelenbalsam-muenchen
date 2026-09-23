@@ -1,9 +1,22 @@
+# Anmeldung laeuft ueber Cloudflare Access (E-Mail-Einmalcode), nicht ueber
+# GitHub. /cms-api/auth und /cms-api/github/* werden von /_worker.js bedient;
+# der GitHub-Token liegt dort als Secret und erreicht den Browser nie.
+# Einrichtung: siehe docs/ADMIN-SETUP.md
 backend:
   name: github
   repo: fresus90/seelenbalsam-muenchen
   branch: main
-  base_url: https://api.netlify.com
-  auth_endpoint: auth
+  base_url: https://seelenbalsam-muenchen.de
+  auth_endpoint: cms-api/auth
+  api_root: https://seelenbalsam-muenchen.de/cms-api/github
+  commit_messages:
+    create: "{{collection}} „{{slug}}“ angelegt (Admin-Panel)"
+    update: "{{collection}} „{{slug}}“ aktualisiert (Admin-Panel)"
+    delete: "{{collection}} „{{slug}}“ geloescht (Admin-Panel)"
+    uploadMedia: "Bild „{{path}}“ hochgeladen (Admin-Panel)"
+    deleteMedia: "Bild „{{path}}“ geloescht (Admin-Panel)"
+
+publish_mode: simple
 
 media_folder: "images"
 public_folder: "/images"

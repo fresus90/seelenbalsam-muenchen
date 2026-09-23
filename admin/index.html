@@ -1,12 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
   <title>Seelenbalsam · Admin</title>
+  <style>
+    #sb-logout {
+      position: fixed; bottom: 14px; right: 14px; z-index: 9999;
+      font: 400 12px/1 system-ui, sans-serif;
+      background: #fff; color: #6B4F3A; border: 1px solid #d8c8b8;
+      border-radius: 20px; padding: 8px 16px; cursor: pointer;
+    }
+    #sb-logout:hover { background: #C4906A; color: #fff; border-color: #C4906A; }
+  </style>
 </head>
 <body>
   <div id="nc-root"></div>
+
+  <!-- Meldet zusaetzlich die Cloudflare-Access-Sitzung ab. Ohne diesen Schritt
+       bleibt man am Geraet angemeldet, auch wenn das CMS abgemeldet ist. -->
+  <button id="sb-logout" type="button">Abmelden</button>
+
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+  <script>
+    document.getElementById('sb-logout').addEventListener('click', function () {
+      try { localStorage.removeItem('netlify-cms-user'); } catch (e) {}
+      try { localStorage.removeItem('decap-cms-user'); } catch (e) {}
+      window.location.href = '/cdn-cgi/access/logout';
+    });
+  </script>
 </body>
 </html>

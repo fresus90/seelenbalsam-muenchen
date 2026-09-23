@@ -12,8 +12,14 @@ Website für den Kinderbewegungskurs Seelenbalsam von Tamara Möhwald in Münche
 
 ## Inhalte bearbeiten
 
-Inhalte (Texte, Bilder, FAQ, Impressum, Datenschutz) werden über das
+Inhalte (Texte, Bilder, FAQ, Rezensionen, Impressum, Datenschutz) werden über das
 Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_data`.
+
+Die Anmeldung läuft über **Cloudflare Access** (E-Mail-Einmalcode) – ein
+GitHub-Account ist dafür nicht nötig. Der Worker unter `/cms-api/*` prüft bei
+jeder Anfrage die Access-Sitzung und spricht stellvertretend mit der GitHub-API;
+der GitHub-Token bleibt serverseitig. Einrichtung und Fehlersuche:
+[`docs/ADMIN-SETUP.md`](docs/ADMIN-SETUP.md).
 
 ## Projektstruktur
 
@@ -23,7 +29,9 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 ├── impressum.html      # Impressum – eigene Seite unter /impressum
 ├── datenschutz.html    # Datenschutzerklärung – eigene Seite unter /datenschutz
 ├── legal.css           # Styling der beiden Rechtstexte-Seiten
-├── _worker.js          # Cloudflare Pages Worker (aktiv, beantwortet /chat)
+├── _worker.js          # Cloudflare Pages Worker (aktiv: /chat und /cms-api/*)
+├── docs/
+│   └── ADMIN-SETUP.md  # Einrichtung des Admin-Logins
 ├── README.md           # Diese Datei
 ├── admin/
 │   ├── index.html      # Decap CMS Admin-Panel
@@ -47,7 +55,10 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 
 1. Repository mit Cloudflare Pages verbinden
 2. Build-Einstellungen: kein Build-Command nötig (statische Seite)
-3. Environment Variable setzen: `ANTHROPIC_API_KEY`
+3. Environment Variables setzen (Production):
+   - `ANTHROPIC_API_KEY` – für den Chat-Bot
+   - `GITHUB_TOKEN`, `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` – für das
+     Admin-Panel, siehe `docs/ADMIN-SETUP.md`
 4. Custom Domain `seelenbalsam-muenchen.de` konfigurieren
 
 ## Chat-Bot
@@ -75,10 +86,10 @@ verlinkbar erreichbar sein. Die Inhalte kommen weiterhin aus
 
 - **Kursdatum:** `_data/kurs.json` und `_data/wissensdatenbank.json` nennen weiterhin
   »ab 08. Mai 2025«. Das sollte auf den nächsten tatsächlichen Kursstart aktualisiert werden.
-- **Admin-Login:** `admin/config.yml` nutzt `base_url: https://api.netlify.com`. Dieser
-  OAuth-Broker funktioniert nur für Seiten, die bei Netlify gehostet werden. Für Cloudflare
-  Pages braucht es einen eigenen GitHub-OAuth-Endpunkt (z.B. einen kleinen Worker), sonst
-  schlägt der Login unter `/admin` fehl.
+- **Admin-Login:** Der Code steht, aber die einmalige Einrichtung in Cloudflare und
+  GitHub fehlt noch – siehe `docs/ADMIN-SETUP.md`. Solange `GITHUB_TOKEN`,
+  `CF_ACCESS_TEAM_DOMAIN` und `CF_ACCESS_AUD` nicht gesetzt sind, meldet `/admin`
+  einen Konfigurationsfehler.
 
 ## Kontakt
 
