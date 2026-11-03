@@ -115,9 +115,29 @@ nicht.
 
 ## Schritt 3 – Variablen im Pages-Projekt setzen
 
-Cloudflare-Dashboard → **Workers & Pages** → Projekt
-`seelenbalsam-muenchen` → **Settings → Variables and Secrets** →
-Umgebung **Production**:
+> **Achtung, häufige Verwechslung:** Die Variablen gehören zum
+> **Pages-Projekt**, nicht zur Domain. Wenn du links im Menü *DNS*,
+> *SSL/TLS* oder *Caching* siehst, bist du in der Domain-Ansicht – dort
+> gibt es keine Variablen. (Der Punkt *Workers Routes* dort ist etwas
+> anderes.)
+
+**So kommst du hin:**
+
+1. Oben links auf den Accountnamen klicken → Account-Übersicht.
+2. Linke Leiste: **Compute (Workers)** – in älteren Dashboards heißt der
+   Punkt **Workers & Pages**.
+3. Das Projekt anklicken, das diese Website deployt (z. B.
+   `seelenbalsam-muenchen`). Erkennbar an der `*.pages.dev`-Adresse und
+   den Reitern *Deployments / Metrics / Settings*.
+4. Reiter **Settings**.
+5. Abschnitt **Variables and Secrets** – in älteren Dashboards
+   **Environment variables**.
+6. Umgebung **Production** wählen (nicht Preview).
+
+Direktlink in die Projektliste, ohne Account-ID:
+`https://dash.cloudflare.com/?to=/:account/workers-and-pages`
+
+**Diese beiden Einträge anlegen:**
 
 | Name           | Typ    | Wert                                      |
 |----------------|--------|-------------------------------------------|
@@ -200,5 +220,6 @@ die Zeile ersetzen.
 | „Zu viele Fehlversuche“ | 15 Minuten warten oder von einem anderen Anschluss probieren. |
 | Es wird zusätzlich ein E-Mail-Code verlangt | Es existiert noch eine alte Cloudflare-Access-Anwendung für `/admin`. Löschen, siehe Hinweis bei Schritt 4. |
 | Das Anmeldefenster öffnet sich nicht | Popup-Blocker. Popups für die Domain erlauben. |
+| „Variables and Secrets“ ist nirgends zu finden | Du bist in der Domain-Ansicht statt im Pages-Projekt. Siehe Kasten bei Schritt 3. |
 | Das Panel lädt, zeigt aber keine Bereiche | `admin/config.yml` ist nicht erreichbar oder fehlerhaft. Browser-Konsole prüfen. |
 | Beim Speichern plötzlich 401 | Sitzung abgelaufen. `/admin` neu laden und erneut anmelden. |
