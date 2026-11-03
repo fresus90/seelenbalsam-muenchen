@@ -148,35 +148,47 @@ Wenn du etwas nicht weißt: freundlich sagen und WhatsApp empfehlen. Nichts erfi
 
 
 /* ═══════════════════════════════════════════════════════════════════════
-   ADMIN-PANEL (/admin) – Login ohne GitHub-Account
+   ADMIN-PANEL (/admin) – Login mit Benutzername und Passwort
 
    Decap CMS kann sich von Haus aus nur bei GitHub anmelden. Damit auch
-   Personen ohne GitHub-Account Inhalte pflegen koennen, uebernimmt
-   Cloudflare Access die Anmeldung (E-Mail-Einmalcode) und dieser Worker
-   spricht stellvertretend mit der GitHub-API. Der GitHub-Token liegt als
-   Secret im Worker und erreicht den Browser nie.
+   Personen ohne GitHub-Account Inhalte pflegen koennen, meldet man sich
+   hier mit Benutzername und Passwort an; dieser Worker spricht
+   stellvertretend mit der GitHub-API.
 
    Ablauf:
-     1. /admin ist per Cloudflare Access geschuetzt -> Access setzt das
-        Cookie CF_Authorization.
-     2. Decap oeffnet /cms-api/auth. Dort wird das Access-Token geprueft
-        und dem CMS ein Platzhalter-Token zurueckgegeben.
-     3. Jeder GitHub-Aufruf des CMS laeuft ueber /cms-api/github/*. Dieser
-        Worker prueft erneut das Access-Cookie und haengt den echten
-        GitHub-Token an.
+     1. /admin laedt das Admin-Panel. Beim Klick auf "Anmelden" oeffnet
+        sich /cms-api/auth mit dem Anmeldeformular.
+     2. Stimmen die Zugangsdaten, setzt der Worker ein signiertes,
+        HttpOnly-Sitzungscookie und meldet das Panel an.
+     3. Jeder GitHub-Aufruf des Panels laeuft ueber /cms-api/github/*.
+        Dort wird die Signatur des Cookies erneut geprueft und erst dann
+        der echte GitHub-Token angehaengt.
 
    Benoetigte Variablen (Cloudflare Pages -> Settings -> Variables):
-     GITHUB_TOKEN           Fine-grained PAT, nur dieses Repository,
-                            Berechtigung "Contents: Read and write"
-     CF_ACCESS_TEAM_DOMAIN  z.B. seelenbalsam.cloudflareaccess.com
-     CF_ACCESS_AUD          Application Audience (AUD) Tag der Access-App
+     GITHUB_TOKEN   Secret. Fine-grained PAT, nur dieses Repository,
+                    Berechtigung "Contents: Read and write".
+     CMS_USERS      Secret. Zugangsdaten, eine Person pro Zeile:
+                      tamara:pbkdf2$210000$<salt>$<hash>
+                    Hashes erzeugt `node scripts/cms-passwort.mjs`.
+                    Ein Klartext-Passwort wird auch akzeptiert, ist aber
+                    nur als schneller Einstieg gedacht.
+
+   Optional:
+     CMS_SESSION_SECRET  Secret zum Signieren der Sitzungen. Fehlt es,
+                         wird der GITHUB_TOKEN dafuer verwendet; ein
+                         Tausch des Tokens meldet dann alle ab.
    ═══════════════════════════════════════════════════════════════════════ */
 
 const CMS_REPO = 'fresus90/seelenbalsam-muenchen';
 const GITHUB_API = 'https://api.github.com';
-const JWKS_TTL_MS = 60 * 60 * 1000;
+const SESSION_COOKIE = 'sb_cms_session';
+const SESSION_MAX_AGE_S = 12 * 60 * 60;
+const PBKDF2_ITERATIONS = 210000;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 10;
 
-let jwksCache = { keys: null, fetchedAt: 0, domain: '' };
+const loginAttempts = new Map();
+let sessionKeyCache = { secret: '', key: null };
 
 function jsonResponse(status, data) {
   return new Response(JSON.stringify(data), {
@@ -185,8 +197,24 @@ function jsonResponse(status, data) {
   });
 }
 
-function base64UrlToBytes(input) {
-  let s = input.replace(/-/g, '+').replace(/_/g, '/');
+function htmlResponse(status, body, extraHeaders) {
+  return new Response(body, {
+    status,
+    headers: Object.assign(
+      { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' },
+      extraHeaders || {}
+    ),
+  });
+}
+
+function base64UrlEncode(bytes) {
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function base64UrlDecode(input) {
+  let s = String(input).replace(/-/g, '+').replace(/_/g, '/');
   while (s.length % 4 !== 0) s += '=';
   const bin = atob(s);
   const bytes = new Uint8Array(bin.length);
@@ -194,108 +222,266 @@ function base64UrlToBytes(input) {
   return bytes;
 }
 
-function base64UrlToJSON(input) {
-  return JSON.parse(new TextDecoder().decode(base64UrlToBytes(input)));
+// Vergleich ohne frueher Abbruch – verhindert, dass sich ein Passwort
+// ueber die Antwortzeit Zeichen fuer Zeichen erraten laesst.
+function constantTimeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];
+  return diff === 0;
 }
 
-async function getAccessKeys(teamDomain) {
-  const now = Date.now();
-  if (jwksCache.keys && jwksCache.domain === teamDomain && now - jwksCache.fetchedAt < JWKS_TTL_MS) {
-    return jwksCache.keys;
-  }
-  const res = await fetch('https://' + teamDomain + '/cdn-cgi/access/certs');
-  if (!res.ok) throw new Error('Signaturschluessel von Cloudflare Access nicht abrufbar.');
-  const data = await res.json();
-  if (!data || !Array.isArray(data.keys) || !data.keys.length) {
-    throw new Error('Cloudflare Access hat keine Signaturschluessel geliefert.');
-  }
-  jwksCache = { keys: data.keys, fetchedAt: now, domain: teamDomain };
-  return data.keys;
-}
-
-// Prueft das von Cloudflare Access ausgestellte JWT: Signatur, Laufzeit,
-// Aussteller und Ziel-Anwendung. Erst danach gilt jemand als angemeldet.
-async function verifyAccessToken(token, teamDomain, expectedAud) {
-  const parts = token.split('.');
-  if (parts.length !== 3) throw new Error('Access-Token hat ein unerwartetes Format.');
-
-  const header = base64UrlToJSON(parts[0]);
-  if (header.alg !== 'RS256') throw new Error('Unerwarteter Signaturalgorithmus: ' + header.alg);
-
-  const keys = await getAccessKeys(teamDomain);
-  const jwk = keys.find(k => k.kid === header.kid);
-  if (!jwk) throw new Error('Der Signaturschluessel des Tokens ist unbekannt.');
-
-  const key = await crypto.subtle.importKey(
-    'jwk',
-    { kty: jwk.kty, n: jwk.n, e: jwk.e, alg: 'RS256', ext: true },
-    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-    false,
-    ['verify']
-  );
-
-  const signed = new TextEncoder().encode(parts[0] + '.' + parts[1]);
-  const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, base64UrlToBytes(parts[2]), signed);
-  if (!valid) throw new Error('Die Signatur des Access-Tokens ist ungueltig.');
-
-  const payload = base64UrlToJSON(parts[1]);
-  const now = Math.floor(Date.now() / 1000);
-  if (typeof payload.exp === 'number' && payload.exp < now) {
-    throw new Error('Die Anmeldung ist abgelaufen.');
-  }
-  if (typeof payload.nbf === 'number' && payload.nbf > now + 60) {
-    throw new Error('Das Access-Token ist noch nicht gueltig.');
-  }
-  if (payload.iss !== 'https://' + teamDomain) {
-    throw new Error('Das Access-Token stammt von einer anderen Organisation.');
-  }
-  const audience = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-  if (!audience.includes(expectedAud)) {
-    throw new Error('Das Access-Token gehoert zu einer anderen Anwendung.');
-  }
-  return payload;
-}
-
-class CmsAuthError extends Error {
-  constructor(status, message) { super(message); this.status = status; }
-}
-
-// Liest das Access-Token aus Header oder Cookie und gibt die angemeldete
-// Identitaet zurueck. Wirft CmsAuthError, wenn niemand angemeldet ist.
-async function requireEditor(request, env) {
-  const teamDomain = env.CF_ACCESS_TEAM_DOMAIN;
-  const expectedAud = env.CF_ACCESS_AUD;
-  if (!teamDomain || !expectedAud) {
-    throw new CmsAuthError(500,
-      'Cloudflare Access ist nicht konfiguriert: CF_ACCESS_TEAM_DOMAIN und CF_ACCESS_AUD fehlen.');
-  }
-
-  let token = request.headers.get('Cf-Access-Jwt-Assertion');
-  if (!token) {
-    const cookie = request.headers.get('Cookie') || '';
-    const match = cookie.match(/(?:^|;\s*)CF_Authorization=([^;]+)/);
-    if (match) token = decodeURIComponent(match[1]);
-  }
-  if (!token) {
-    throw new CmsAuthError(401, 'Nicht angemeldet. Bitte /admin neu laden und einloggen.');
-  }
-
-  try {
-    const payload = await verifyAccessToken(token, teamDomain, expectedAud);
-    return {
-      email: payload.email || 'unbekannt',
-      sub: payload.sub || '',
-    };
-  } catch (err) {
-    throw new CmsAuthError(401, err.message);
-  }
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
 function escapeForScript(value) {
   return JSON.stringify(value).replace(/</g, '\\u003c');
 }
 
-function authPopupPage(bodyText, tokenOrNull) {
+/* ── Zugangsdaten ───────────────────────────────────────────────────── */
+
+// Akzeptiert JSON ({"tamara":"geheim"}) oder je Zeile "benutzer:geheimnis".
+// Beim Zeilenformat zaehlt nur der erste Doppelpunkt, damit Passwoerter
+// selbst Doppelpunkte enthalten duerfen.
+function parseCmsUsers(raw) {
+  const users = new Map();
+  if (!raw) return users;
+  const text = String(raw).trim();
+  if (!text) return users;
+
+  if (text.startsWith('{')) {
+    try {
+      const obj = JSON.parse(text);
+      for (const [name, secret] of Object.entries(obj)) {
+        if (typeof secret === 'string' && name) users.set(name.trim().toLowerCase(), secret);
+      }
+      return users;
+    } catch (e) {
+      return users;
+    }
+  }
+
+  for (const line of text.split(/\r?\n/)) {
+    const entry = line.trim();
+    if (!entry || entry.startsWith('#')) continue;
+    const sep = entry.indexOf(':');
+    if (sep <= 0) continue;
+    const name = entry.slice(0, sep).trim().toLowerCase();
+    const secret = entry.slice(sep + 1).trim();
+    if (name && secret) users.set(name, secret);
+  }
+  return users;
+}
+
+async function pbkdf2(password, salt, iterations) {
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), { name: 'PBKDF2' }, false, ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' }, key, 256
+  );
+  return new Uint8Array(bits);
+}
+
+// Prueft das Passwort gegen den gespeicherten Wert. Unterstuetzt
+// "pbkdf2$<runden>$<salt>$<hash>" und – als Einstiegshilfe – Klartext.
+async function passwordMatches(password, stored) {
+  if (stored.startsWith('pbkdf2$')) {
+    const parts = stored.split('$');
+    if (parts.length !== 4) return false;
+    const iterations = parseInt(parts[1], 10);
+    if (!Number.isFinite(iterations) || iterations < 1000) return false;
+    let salt, expected;
+    try {
+      salt = base64UrlDecode(parts[2]);
+      expected = base64UrlDecode(parts[3]);
+    } catch (e) {
+      return false;
+    }
+    const actual = await pbkdf2(password, salt, iterations);
+    return constantTimeEqual(actual, expected);
+  }
+  const enc = new TextEncoder();
+  return constantTimeEqual(enc.encode(password), enc.encode(stored));
+}
+
+async function checkCredentials(env, username, password) {
+  const users = parseCmsUsers(env.CMS_USERS);
+  if (!users.size) throw new CmsAuthError(500, 'Es sind noch keine Zugangsdaten hinterlegt (CMS_USERS fehlt).');
+
+  const name = String(username || '').trim().toLowerCase();
+  const stored = users.get(name);
+
+  // Auch ohne Treffer rechnen, damit sich aus der Antwortzeit nicht
+  // ablesen laesst, ob es den Benutzernamen gibt.
+  if (!stored) {
+    await passwordMatches(String(password || ''), 'pbkdf2$' + PBKDF2_ITERATIONS + '$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA');
+    return null;
+  }
+  const ok = await passwordMatches(String(password || ''), stored);
+  return ok ? name : null;
+}
+
+/* ── Sitzung ────────────────────────────────────────────────────────── */
+
+async function getSessionKey(env) {
+  const secret = env.CMS_SESSION_SECRET || env.GITHUB_TOKEN || '';
+  if (!secret) throw new CmsAuthError(500, 'Weder CMS_SESSION_SECRET noch GITHUB_TOKEN ist gesetzt.');
+  if (sessionKeyCache.key && sessionKeyCache.secret === secret) return sessionKeyCache.key;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode('sb-cms-session:' + secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']
+  );
+  sessionKeyCache = { secret, key };
+  return key;
+}
+
+async function createSession(env, username) {
+  const payload = base64UrlEncode(new TextEncoder().encode(JSON.stringify({
+    u: username,
+    exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_S,
+  })));
+  const key = await getSessionKey(env);
+  const sig = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload)));
+  return payload + '.' + base64UrlEncode(sig);
+}
+
+async function readSessionToken(env, token) {
+  if (!token) return null;
+  const dot = token.lastIndexOf('.');
+  if (dot <= 0) return null;
+  const payload = token.slice(0, dot);
+  let sig;
+  try { sig = base64UrlDecode(token.slice(dot + 1)); } catch (e) { return null; }
+
+  const key = await getSessionKey(env);
+  const valid = await crypto.subtle.verify('HMAC', key, sig, new TextEncoder().encode(payload));
+  if (!valid) return null;
+
+  let data;
+  try { data = JSON.parse(new TextDecoder().decode(base64UrlDecode(payload))); } catch (e) { return null; }
+  if (!data || typeof data.u !== 'string') return null;
+  if (typeof data.exp !== 'number' || data.exp < Math.floor(Date.now() / 1000)) return null;
+
+  // Wer inzwischen aus CMS_USERS entfernt wurde, kommt auch mit einem
+  // noch gueltigen Cookie nicht mehr hinein.
+  if (!parseCmsUsers(env.CMS_USERS).has(data.u)) return null;
+
+  return { user: data.u };
+}
+
+function readCookie(request, name) {
+  const cookie = request.headers.get('Cookie') || '';
+  const match = cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function sessionCookieHeader(token, maxAge) {
+  return SESSION_COOKIE + '=' + token +
+    '; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=' + maxAge;
+}
+
+class CmsAuthError extends Error {
+  constructor(status, message) { super(message); this.status = status; }
+}
+
+async function requireEditor(request, env) {
+  const session = await readSessionToken(env, readCookie(request, SESSION_COOKIE));
+  if (!session) throw new CmsAuthError(401, 'Nicht angemeldet. Bitte /admin neu laden und einloggen.');
+  return session;
+}
+
+/* ── Anmeldeversuche begrenzen ──────────────────────────────────────── */
+
+function loginBlocked(ip) {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) return false;
+  return entry.count >= LOGIN_MAX_ATTEMPTS;
+}
+
+function noteFailedLogin(ip) {
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now > entry.resetAt) {
+    loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+  } else {
+    entry.count++;
+  }
+  if (loginAttempts.size > 1000) {
+    for (const [key, val] of loginAttempts) if (now > val.resetAt) loginAttempts.delete(key);
+  }
+}
+
+/* ── Seiten ─────────────────────────────────────────────────────────── */
+
+const CMS_PAGE_STYLE = `
+  :root { --terracotta:#C4906A; --dark:#3D2B1F; --taupe:#B09A88; --warm:#FDF9F5; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Jost', system-ui, sans-serif; background: var(--warm); color: var(--dark);
+         display:flex; align-items:center; justify-content:center; min-height:100vh;
+         margin:0; padding:24px; }
+  .box { width:100%; max-width:340px; text-align:center; }
+  h1 { font-family:'Cormorant Garamond', Georgia, serif; font-weight:400; font-size:1.5rem;
+       letter-spacing:.04em; margin:0 0 4px; }
+  .sub { color:var(--taupe); font-size:.8rem; margin:0 0 26px; }
+  label { display:block; text-align:left; font-size:.68rem; letter-spacing:.12em;
+          text-transform:uppercase; color:var(--taupe); margin:0 0 6px; }
+  input { width:100%; padding:12px 14px; margin-bottom:16px; font-size:.95rem; font-family:inherit;
+          border:1px solid #e0d2c2; border-radius:10px; background:#fff; color:var(--dark); }
+  input:focus { outline:none; border-color:var(--terracotta); }
+  button { width:100%; padding:13px; border:none; border-radius:30px; background:var(--terracotta);
+           color:#fff; font-family:inherit; font-size:.75rem; letter-spacing:.12em;
+           text-transform:uppercase; cursor:pointer; }
+  button:hover { background:#6B4F3A; }
+  .err { background:rgba(196,144,106,.12); border-left:3px solid var(--terracotta);
+         border-radius:0 8px 8px 0; padding:10px 14px; margin-bottom:18px;
+         font-size:.82rem; text-align:left; line-height:1.5; }
+  .msg { font-size:.9rem; line-height:1.6; color:var(--taupe); }
+`;
+
+function loginPage(errorText, username, status) {
+  return htmlResponse(status || 200, `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Anmelden · Seelenbalsam</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>${CMS_PAGE_STYLE}</style>
+</head>
+<body>
+<div class="box">
+  <h1>Seelenbalsam</h1>
+  <p class="sub">Anmeldung zur Inhaltspflege</p>
+  ${errorText ? '<div class="err">' + escapeHTML(errorText) + '</div>' : ''}
+  <form method="POST" action="/cms-api/auth" autocomplete="on">
+    <label for="u">Benutzername</label>
+    <input id="u" name="username" type="text" autocomplete="username"
+           autocapitalize="none" spellcheck="false" required value="${escapeHTML(username || '')}">
+    <label for="p">Passwort</label>
+    <input id="p" name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Anmelden</button>
+  </form>
+</div>
+<script>
+  (function () {
+    var u = document.getElementById('u');
+    var p = document.getElementById('p');
+    (u && !u.value ? u : p).focus();
+  })();
+</script>
+</body>
+</html>`);
+}
+
+// Fuehrt den postMessage-Handshake, den Decap von einem OAuth-Anbieter
+// erwartet. Uebergeben wird nur ein Platzhalter – der echte GitHub-Token
+// bleibt im Worker.
+function authPopupPage(bodyText, tokenOrNull, extraHeaders, status) {
   const script = tokenOrNull === null ? '' : `
     (function () {
       var provider = 'github';
@@ -316,7 +502,7 @@ function authPopupPage(bodyText, tokenOrNull) {
 
       if (!window.opener) {
         document.getElementById('msg').textContent =
-          'Dieses Fenster wurde nicht vom Admin-Panel geoeffnet. Bitte /admin aufrufen.';
+          'Die Anmeldung hat geklappt. Bitte dieses Fenster schliessen und /admin neu laden.';
         return;
       }
 
@@ -332,55 +518,87 @@ function authPopupPage(bodyText, tokenOrNull) {
       window.opener.postMessage('authorizing:' + provider, window.location.origin);
     })();`;
 
-  return `<!DOCTYPE html>
+  return htmlResponse(status || 200, `<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anmeldung</title>
-<style>
-  body { font-family: system-ui, sans-serif; background: #FDF9F5; color: #3D2B1F;
-         display: flex; align-items: center; justify-content: center;
-         min-height: 100vh; margin: 0; padding: 24px; text-align: center; }
-  p { max-width: 380px; line-height: 1.6; font-size: 0.95rem; }
-</style>
+<meta name="robots" content="noindex, nofollow">
+<title>Anmeldung · Seelenbalsam</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>${CMS_PAGE_STYLE}</style>
 </head>
 <body>
-<p id="msg">${bodyText}</p>
+<div class="box">
+  <h1>Seelenbalsam</h1>
+  <p class="msg" id="msg">${escapeHTML(bodyText)}</p>
+</div>
 <script>${script}</script>
 </body>
-</html>`;
+</html>`, extraHeaders);
+}
+
+/* ── Endpunkte ──────────────────────────────────────────────────────── */
+
+async function handleCmsAuth(request, env) {
+  if (!env.GITHUB_TOKEN) {
+    return loginPage('Der Server ist noch nicht fertig eingerichtet: GITHUB_TOKEN fehlt.', '', 500);
+  }
+
+  if (request.method === 'GET') {
+    let session = null;
+    try { session = await readSessionToken(env, readCookie(request, SESSION_COOKIE)); } catch (e) { session = null; }
+    if (session) {
+      return authPopupPage('Angemeldet als ' + session.user + '. Dieses Fenster schliesst sich gleich.', 'cms-session');
+    }
+    return loginPage('', '');
+  }
+
+  if (request.method !== 'POST') {
+    return new Response('Method Not Allowed', { status: 405, headers: { 'Allow': 'GET, POST' } });
+  }
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (loginBlocked(ip)) {
+    return loginPage('Zu viele Fehlversuche. Bitte in 15 Minuten noch einmal probieren.', '', 429);
+  }
+
+  let form;
+  try { form = await request.formData(); }
+  catch (e) { return loginPage('Die Eingaben konnten nicht gelesen werden.', '', 400); }
+
+  const username = form.get('username') || '';
+  const password = form.get('password') || '';
+
+  let user;
+  try {
+    user = await checkCredentials(env, username, password);
+  } catch (err) {
+    return loginPage(err.message, String(username), err.status || 500);
+  }
+
+  if (!user) {
+    noteFailedLogin(ip);
+    return loginPage('Benutzername oder Passwort stimmt nicht.', String(username), 401);
+  }
+
+  loginAttempts.delete(ip);
+  const token = await createSession(env, user);
+  return authPopupPage(
+    'Angemeldet als ' + user + '. Dieses Fenster schliesst sich gleich.',
+    'cms-session',
+    { 'Set-Cookie': sessionCookieHeader(token, SESSION_MAX_AGE_S) }
+  );
+}
+
+function handleCmsLogout() {
+  return jsonResponse(200, { ok: true });
 }
 
 // Nur Aufrufe zu genau diesem Repository durchlassen – der Token selbst
 // sollte ohnehin nur hier Schreibrechte haben, das ist die zweite Schranke.
 function isAllowedGithubPath(path) {
   return path === '/repos/' + CMS_REPO || path.startsWith('/repos/' + CMS_REPO + '/');
-}
-
-async function handleCmsAuth(request, env) {
-  let editor;
-  try {
-    editor = await requireEditor(request, env);
-  } catch (err) {
-    return new Response(
-      authPopupPage('Anmeldung fehlgeschlagen: ' + err.message, null),
-      { status: err.status || 401, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
-    );
-  }
-  if (!env.GITHUB_TOKEN) {
-    return new Response(
-      authPopupPage('Der Server ist noch nicht fertig eingerichtet: GITHUB_TOKEN fehlt.', null),
-      { status: 500, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
-    );
-  }
-
-  // Platzhalter-Token: Das CMS braucht irgendeinen Wert für den
-  // Authorization-Header. Der echte GitHub-Token bleibt im Worker.
-  return new Response(
-    authPopupPage('Angemeldet als ' + editor.email + '. Dieses Fenster schliesst sich gleich.', 'cf-access-session'),
-    { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } }
-  );
 }
 
 async function handleCmsGithub(request, env, url) {
@@ -397,13 +615,9 @@ async function handleCmsGithub(request, env, url) {
   const path = url.pathname.slice('/cms-api/github'.length) || '/';
 
   // Das CMS fragt die angemeldete Person ab. Statt des Token-Besitzers
-  // zeigen wir, wer sich tatsaechlich bei Access angemeldet hat.
+  // zeigen wir, wer sich tatsaechlich angemeldet hat.
   if (path === '/user') {
-    return jsonResponse(200, {
-      login: editor.email,
-      name: editor.email,
-      avatar_url: '',
-    });
+    return jsonResponse(200, { login: editor.user, name: editor.user, avatar_url: '' });
   }
 
   if (!isAllowedGithubPath(path)) {
@@ -449,6 +663,11 @@ async function handleCmsGithub(request, env, url) {
 
 async function handleCmsApi(request, env, url) {
   if (url.pathname === '/cms-api/auth') return handleCmsAuth(request, env);
+  if (url.pathname === '/cms-api/logout') {
+    const res = handleCmsLogout();
+    res.headers.set('Set-Cookie', sessionCookieHeader('', 0));
+    return res;
+  }
   if (url.pathname === '/cms-api/github' || url.pathname.startsWith('/cms-api/github/')) {
     return handleCmsGithub(request, env, url);
   }

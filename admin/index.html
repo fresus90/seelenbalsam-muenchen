@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Seelenbalsam · Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     #sb-logout {
       position: fixed; bottom: 14px; right: 14px; z-index: 9999;
-      font: 400 12px/1 system-ui, sans-serif;
+      font: 400 12px/1 'Jost', system-ui, sans-serif;
       background: #fff; color: #6B4F3A; border: 1px solid #d8c8b8;
       border-radius: 20px; padding: 8px 16px; cursor: pointer;
     }
@@ -18,16 +19,41 @@
 <body>
   <div id="nc-root"></div>
 
-  <!-- Meldet zusaetzlich die Cloudflare-Access-Sitzung ab. Ohne diesen Schritt
-       bleibt man am Geraet angemeldet, auch wenn das CMS abgemeldet ist. -->
   <button id="sb-logout" type="button">Abmelden</button>
 
   <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
   <script>
+    // Decap beschriftet den Anmeldeknopf fest mit "Login with GitHub".
+    // Hier wird daraus "Anmelden" - angemeldet wird mit Benutzername und
+    // Passwort, GitHub bekommen die Redakteurinnen nie zu sehen.
+    (function () {
+      var ZIEL = 'Anmelden';
+      function umbenennen() {
+        var knoepfe = document.querySelectorAll('#nc-root button, #nc-root [role="button"]');
+        for (var i = 0; i < knoepfe.length; i++) {
+          var text = (knoepfe[i].textContent || '').trim();
+          if (/login with github/i.test(text) || /mit github anmelden/i.test(text)) {
+            knoepfe[i].textContent = ZIEL;
+          }
+        }
+      }
+      umbenennen();
+      var root = document.getElementById('nc-root');
+      if (root && window.MutationObserver) {
+        new MutationObserver(umbenennen).observe(root, { childList: true, subtree: true });
+      }
+    })();
+
+    // Meldet auch die Sitzung im Worker ab, nicht nur das Panel. Ohne
+    // diesen Schritt bliebe das Sitzungscookie im Browser gueltig.
     document.getElementById('sb-logout').addEventListener('click', function () {
-      try { localStorage.removeItem('netlify-cms-user'); } catch (e) {}
-      try { localStorage.removeItem('decap-cms-user'); } catch (e) {}
-      window.location.href = '/cdn-cgi/access/logout';
+      var fertig = function () {
+        try { localStorage.removeItem('netlify-cms-user'); } catch (e) {}
+        try { localStorage.removeItem('decap-cms-user'); } catch (e) {}
+        window.location.reload();
+      };
+      fetch('/cms-api/logout', { method: 'POST', credentials: 'same-origin' })
+        .then(fertig, fertig);
     });
   </script>
 </body>

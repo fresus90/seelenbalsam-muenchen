@@ -1,6 +1,6 @@
-# Anmeldung laeuft ueber Cloudflare Access (E-Mail-Einmalcode), nicht ueber
-# GitHub. /cms-api/auth und /cms-api/github/* werden von /_worker.js bedient;
-# der GitHub-Token liegt dort als Secret und erreicht den Browser nie.
+# Angemeldet wird mit Benutzername und Passwort, nicht bei GitHub.
+# /cms-api/auth und /cms-api/github/* werden von /_worker.js bedient; der
+# GitHub-Token liegt dort als Secret und erreicht den Browser nie.
 # Einrichtung: siehe docs/ADMIN-SETUP.md
 backend:
   name: github

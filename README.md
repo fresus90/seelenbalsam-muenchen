@@ -15,10 +15,11 @@ Website für den Kinderbewegungskurs Seelenbalsam von Tamara Möhwald in Münche
 Inhalte (Texte, Bilder, FAQ, Rezensionen, Impressum, Datenschutz) werden über das
 Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_data`.
 
-Die Anmeldung läuft über **Cloudflare Access** (E-Mail-Einmalcode) – ein
-GitHub-Account ist dafür nicht nötig. Der Worker unter `/cms-api/*` prüft bei
-jeder Anfrage die Access-Sitzung und spricht stellvertretend mit der GitHub-API;
-der GitHub-Token bleibt serverseitig. Einrichtung und Fehlersuche:
+Die Anmeldung läuft mit **Benutzername und Passwort** – ein GitHub-Account ist
+dafür nicht nötig. Der Worker unter `/cms-api/*` prüft bei jeder Anfrage die
+signierte Sitzung und spricht stellvertretend mit der GitHub-API; der
+GitHub-Token bleibt serverseitig. Zugangsdaten erzeugt
+`node scripts/cms-passwort.mjs <name>`. Einrichtung und Fehlersuche:
 [`docs/ADMIN-SETUP.md`](docs/ADMIN-SETUP.md).
 
 ## Projektstruktur
@@ -32,6 +33,8 @@ der GitHub-Token bleibt serverseitig. Einrichtung und Fehlersuche:
 ├── _worker.js          # Cloudflare Pages Worker (aktiv: /chat und /cms-api/*)
 ├── docs/
 │   └── ADMIN-SETUP.md  # Einrichtung des Admin-Logins
+├── scripts/
+│   └── cms-passwort.mjs # Erzeugt Zugangsdaten für CMS_USERS
 ├── README.md           # Diese Datei
 ├── admin/
 │   ├── index.html      # Decap CMS Admin-Panel
@@ -57,8 +60,8 @@ der GitHub-Token bleibt serverseitig. Einrichtung und Fehlersuche:
 2. Build-Einstellungen: kein Build-Command nötig (statische Seite)
 3. Environment Variables setzen (Production):
    - `ANTHROPIC_API_KEY` – für den Chat-Bot
-   - `GITHUB_TOKEN`, `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD` – für das
-     Admin-Panel, siehe `docs/ADMIN-SETUP.md`
+   - `GITHUB_TOKEN`, `CMS_USERS` – für das Admin-Panel, siehe
+     `docs/ADMIN-SETUP.md`
 4. Custom Domain `seelenbalsam-muenchen.de` konfigurieren
 
 ## Chat-Bot
@@ -87,9 +90,8 @@ verlinkbar erreichbar sein. Die Inhalte kommen weiterhin aus
 - **Kursdatum:** `_data/kurs.json` und `_data/wissensdatenbank.json` nennen weiterhin
   »ab 08. Mai 2025«. Das sollte auf den nächsten tatsächlichen Kursstart aktualisiert werden.
 - **Admin-Login:** Der Code steht, aber die einmalige Einrichtung in Cloudflare und
-  GitHub fehlt noch – siehe `docs/ADMIN-SETUP.md`. Solange `GITHUB_TOKEN`,
-  `CF_ACCESS_TEAM_DOMAIN` und `CF_ACCESS_AUD` nicht gesetzt sind, meldet `/admin`
-  einen Konfigurationsfehler.
+  GitHub fehlt noch – siehe `docs/ADMIN-SETUP.md`. Solange `GITHUB_TOKEN` und
+  `CMS_USERS` nicht gesetzt sind, meldet `/admin` einen Konfigurationsfehler.
 
 ## Kontakt
 

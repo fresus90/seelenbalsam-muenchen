@@ -1,8 +1,8 @@
-# Admin-Panel einrichten (Login ohne GitHub-Account)
+# Admin-Panel einrichten (Login mit Benutzername und Passwort)
 
 Ziel: Tamara und weitere Personen pflegen die Website unter
-`https://seelenbalsam-muenchen.de/admin` – **ohne** GitHub-Account.
-Die Anmeldung läuft über Cloudflare Access mit E-Mail-Einmalcode.
+`https://seelenbalsam-muenchen.de/admin` – mit Benutzername und Passwort,
+**ohne** GitHub-Account.
 
 Die Schritte 1–4 musst du einmalig selbst ausführen. Der Code dafür ist
 bereits im Projekt (`/_worker.js`, `admin/config.yml`).
@@ -11,13 +11,13 @@ bereits im Projekt (`/_worker.js`, `admin/config.yml`).
 
 ## Wie es funktioniert
 
-1. `/admin` ist per Cloudflare Access geschützt. Wer die Seite aufruft,
-   bekommt einen Einmalcode an die hinterlegte E-Mail-Adresse.
-2. Nach dem Login setzt Cloudflare ein Cookie (`CF_Authorization`).
-3. Das Admin-Panel spricht nicht direkt mit GitHub, sondern mit
-   `/cms-api/github/*` auf dieser Domain. Der Worker prüft dort bei
-   **jeder** Anfrage die Signatur des Cookies und hängt erst dann den
-   GitHub-Token an.
+1. `/admin` lädt das Admin-Panel. Ein Klick auf **Anmelden** öffnet ein
+   kleines Fenster mit dem Anmeldeformular.
+2. Stimmen Benutzername und Passwort, setzt der Worker ein signiertes
+   Sitzungscookie (12 Stunden gültig, für JavaScript nicht lesbar).
+3. Das Panel spricht nicht direkt mit GitHub, sondern mit
+   `/cms-api/github/*`. Der Worker prüft dort bei **jeder** Anfrage die
+   Signatur des Cookies und hängt erst dann den GitHub-Token an.
 4. Der GitHub-Token liegt ausschließlich als Secret im Worker. Er wird
    nie an den Browser ausgeliefert.
 
@@ -28,7 +28,7 @@ deployt automatisch. Nach ein bis zwei Minuten sind sie live.
 
 ## Schritt 1 – GitHub-Token erstellen
 
-1. GitHub → Klick auf dein Profilbild → **Settings**
+1. GitHub → Profilbild → **Settings**
 2. Ganz unten links: **Developer settings**
 3. **Personal access tokens → Fine-grained tokens → Generate new token**
 4. Ausfüllen:
@@ -45,42 +45,38 @@ deployt automatisch. Nach ein bis zwei Minuten sind sie live.
 
 ---
 
-## Schritt 2 – Cloudflare Access einrichten
+## Schritt 2 – Zugangsdaten erzeugen
 
-Im Cloudflare-Dashboard → **Zero Trust** (kostenlos bis 50 Personen).
+Im Projektordner, einmal pro Person:
 
-**a) Anmeldemethode aktivieren**
-- **Settings → Authentication → Login methods**
-- **One-time PIN** hinzufügen, falls noch nicht vorhanden.
+```
+node scripts/cms-passwort.mjs tamara
+```
 
-**b) Anwendung anlegen**
-- **Access → Applications → Add an application → Self-hosted**
-- **Application name:** `Seelenbalsam Admin`
-- **Session Duration:** z. B. `24 hours`
-- **Public hostname:**
-  - Subdomain: *(leer)*
-  - Domain: `seelenbalsam-muenchen.de`
-  - **Path: `admin`**
+Das Skript würfelt ein sicheres Passwort, zeigt es an und gibt eine Zeile
+wie diese aus:
 
-> ⚠️ Trage **nur** `admin` als Pfad ein. Schütze `/cms-api` **nicht**
-> zusätzlich über Access – diese Aufrufe kommen vom JavaScript des
-> Admin-Panels und würden sonst auf die Login-Seite umgeleitet statt eine
-> saubere Fehlermeldung zu bekommen. Der Worker prüft `/cms-api` selbst.
+```
+tamara:pbkdf2$210000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1nqBHor9aj1oeSHQbuz_o
+```
 
-**c) Zugriffsregel**
-- **Policy name:** `Redaktion`
-- **Action:** `Allow`
-- **Include → Emails** → alle Adressen eintragen, die editieren dürfen
-  (z. B. Tamaras Adresse und deine).
+Ein eigenes Passwort vergeben geht auch:
 
-**d) AUD-Tag notieren**
-- Anwendung speichern, dann erneut öffnen → Reiter **Overview**
-- **Application Audience (AUD) Tag** kopieren (lange Hex-Zeichenkette).
+```
+node scripts/cms-passwort.mjs tamara "mein sicheres Passwort"
+```
 
-**e) Team-Domain notieren**
-- **Settings → Custom Pages** (oder oben in der URL) zeigt deine
-  Team-Domain, z. B. `seelenbalsam.cloudflareaccess.com`.
-  **Ohne** `https://` notieren.
+**Das Passwort jetzt notieren und an die Person weitergeben** – gespeichert
+wird nur der Hash, zurückrechnen lässt er sich nicht. Ist das Passwort
+weg, erzeugst du einfach eine neue Zeile.
+
+Für mehrere Personen das Skript mehrfach aufrufen und die Zeilen
+untereinander sammeln:
+
+```
+tamara:pbkdf2$210000$70tRLyZ...
+tim:pbkdf2$210000$Qd8xK2p...
+```
 
 ---
 
@@ -90,14 +86,17 @@ Cloudflare-Dashboard → **Workers & Pages** → Projekt
 `seelenbalsam-muenchen` → **Settings → Variables and Secrets** →
 Umgebung **Production**:
 
-| Name                    | Typ    | Wert                                        |
-|-------------------------|--------|---------------------------------------------|
-| `GITHUB_TOKEN`          | Secret | Token aus Schritt 1                         |
-| `CF_ACCESS_TEAM_DOMAIN` | Text   | z. B. `seelenbalsam.cloudflareaccess.com`   |
-| `CF_ACCESS_AUD`         | Text   | AUD-Tag aus Schritt 2d                      |
+| Name           | Typ    | Wert                                      |
+|----------------|--------|-------------------------------------------|
+| `GITHUB_TOKEN` | Secret | Token aus Schritt 1                       |
+| `CMS_USERS`    | Secret | Die Zeilen aus Schritt 2, untereinander   |
 
-`GITHUB_TOKEN` unbedingt als **Secret** (verschlüsselt) anlegen, nicht als
+Beide unbedingt als **Secret** (verschlüsselt) anlegen, nicht als
 einfachen Text. `ANTHROPIC_API_KEY` für den Chat-Bot bleibt unverändert.
+
+Optional: `CMS_SESSION_SECRET` (Secret, beliebige lange Zufallszeichen)
+zum Signieren der Sitzungen. Fehlt die Variable, wird dafür der
+`GITHUB_TOKEN` verwendet – dann meldet ein Tausch des Tokens alle ab.
 
 ---
 
@@ -108,27 +107,33 @@ Variablen greifen erst nach einem neuen Deployment:
 
 Dann testen:
 
-1. `https://seelenbalsam-muenchen.de/admin` aufrufen
-   → Cloudflare fragt nach der E-Mail-Adresse, schickt einen Code.
-2. Nach dem Login öffnet sich kurz ein Fenster „Angemeldet als …“
-   und schließt sich wieder.
-3. Das Admin-Panel zeigt links die Bereiche (Kurs & Termine, Über Tamara,
-   FAQ, Rezensionen …).
+1. `https://seelenbalsam-muenchen.de/admin` aufrufen → **Anmelden** klicken.
+2. Im Fenster Benutzername und Passwort eingeben.
+3. Das Fenster schließt sich, das Panel zeigt links die Bereiche
+   (Kurs & Termine, Über Tamara, FAQ, Rezensionen …).
 4. Probe: unter **Kurs & Termine** etwas ändern → **Publish**.
    Nach ein bis zwei Minuten steht die Änderung auf der Website.
-5. Mit einer **nicht** freigegebenen E-Mail-Adresse testen – der Login
-   muss abgelehnt werden.
+5. Mit einem falschen Passwort testen – die Anmeldung muss scheitern.
+
+> **Falls du früher eine Cloudflare-Access-Anwendung für `/admin`
+> angelegt hast:** Die bitte löschen (Zero Trust → Access → Applications),
+> sonst wirst du vor dem Panel zusätzlich nach einem E-Mail-Code gefragt.
+> Access wird für den Passwort-Login nicht mehr gebraucht. Die Variablen
+> `CF_ACCESS_TEAM_DOMAIN` und `CF_ACCESS_AUD` kannst du löschen.
 
 ---
 
 ## Personen hinzufügen oder entfernen
 
-Zero Trust → **Access → Applications → Seelenbalsam Admin → Policies →
-Redaktion** → E-Mail-Adresse ergänzen oder streichen. Wirkt sofort, ohne
-Deployment. Wer entfernt wird, kommt nach Ablauf der Session nicht mehr
-hinein.
+Schritt 2 für die neue Person ausführen, die Zeile zu `CMS_USERS`
+hinzufügen (oder die alte Zeile löschen), speichern und neu deployen.
 
-Unter **Access → Logs** siehst du, wer sich wann angemeldet hat.
+Wer entfernt wird, ist **sofort** draußen – auch mit noch gültigem
+Cookie, denn der Worker prüft bei jeder Anfrage, ob der Benutzername noch
+in `CMS_USERS` steht.
+
+**Passwort ändern:** Schritt 2 für dieselbe Person erneut ausführen und
+die Zeile ersetzen.
 
 ---
 
@@ -136,18 +141,19 @@ Unter **Access → Logs** siehst du, wer sich wann angemeldet hat.
 
 - **Alle Änderungen werden unter einem GitHub-Konto committet** (dem
   Besitzer des Tokens). Im Git-Verlauf steht also nicht, *welche*
-  Redakteurin editiert hat. Wer wann angemeldet war, steht in den
-  Access-Logs.
-- **Wer durch Access kommt, darf alle Inhalte dieses Repositories
+  Redakteurin editiert hat.
+- **Wer sich anmelden kann, darf alle Inhalte dieses Repositories
   ändern.** Es gibt keine feineren Rollen. Entsprechend sparsam
-  freigeben.
-- **Token-Ablauf:** Läuft der Token aus, meldet das Admin-Panel
-  Speicherfehler. Dann Schritt 1 wiederholen und `GITHUB_TOKEN` in
-  Cloudflare aktualisieren.
-- **Session abgelaufen:** Erscheinen beim Speichern plötzlich
-  401-Fehler, reicht ein Neuladen von `/admin`.
-- **Abmelden:** Button unten rechts im Admin-Panel. Er beendet auch die
-  Cloudflare-Access-Sitzung – wichtig auf fremden oder geteilten Geräten.
+  Zugänge vergeben.
+- **Passwörter nicht per unverschlüsseltem Kanal weitergeben.**
+- **Nach 10 Fehlversuchen** ist die Anmeldung von dieser Internet-Adresse
+  aus 15 Minuten gesperrt.
+- **Sitzung läuft nach 12 Stunden ab**; dann einfach neu anmelden.
+- **Token-Ablauf:** Läuft der GitHub-Token aus, meldet das Panel
+  Speicherfehler. Dann Schritt 1 wiederholen und `GITHUB_TOKEN`
+  aktualisieren.
+- **Abmelden:** Button unten rechts im Admin-Panel. Wichtig auf fremden
+  oder geteilten Geräten.
 
 ---
 
@@ -155,9 +161,11 @@ Unter **Access → Logs** siehst du, wer sich wann angemeldet hat.
 
 | Symptom | Ursache und Lösung |
 |---|---|
-| „Cloudflare Access ist nicht konfiguriert“ | `CF_ACCESS_TEAM_DOMAIN` oder `CF_ACCESS_AUD` fehlt. Schritt 3, danach neu deployen. |
-| „GITHUB_TOKEN ist im Worker nicht hinterlegt“ | Secret fehlt oder das Deployment ist älter als die Variable. Retry deployment. |
-| „Das Access-Token gehört zu einer anderen Anwendung“ | Falscher AUD-Tag. Schritt 2d prüfen. |
-| „Das Access-Token stammt von einer anderen Organisation“ | Falsche Team-Domain – ohne `https://` und ohne Schrägstrich eintragen. |
-| Login-Fenster bleibt offen und tut nichts | Popup-Blocker. Popups für die Domain erlauben. |
+| „Es sind noch keine Zugangsdaten hinterlegt“ | `CMS_USERS` fehlt oder ist leer. Schritt 3, danach neu deployen. |
+| „Der Server ist noch nicht fertig eingerichtet: GITHUB_TOKEN fehlt“ | Secret fehlt oder das Deployment ist älter als die Variable. Retry deployment. |
+| „Benutzername oder Passwort stimmt nicht“ trotz richtiger Eingabe | Beim Kopieren der Zeile nach Cloudflare ist etwas verrutscht (Leerzeichen, Zeilenumbruch mitten im Hash). Schritt 2 wiederholen und sauber einfügen. |
+| „Zu viele Fehlversuche“ | 15 Minuten warten oder von einem anderen Anschluss probieren. |
+| Es wird zusätzlich ein E-Mail-Code verlangt | Es existiert noch eine alte Cloudflare-Access-Anwendung für `/admin`. Löschen, siehe Hinweis bei Schritt 4. |
+| Das Anmeldefenster öffnet sich nicht | Popup-Blocker. Popups für die Domain erlauben. |
 | Das Panel lädt, zeigt aber keine Bereiche | `admin/config.yml` ist nicht erreichbar oder fehlerhaft. Browser-Konsole prüfen. |
+| Beim Speichern plötzlich 401 | Sitzung abgelaufen. `/admin` neu laden und erneut anmelden. |
