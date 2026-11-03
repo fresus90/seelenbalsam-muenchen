@@ -85,7 +85,7 @@ Das Skript würfelt ein Passwort, zeigt es an und gibt eine Zeile wie
 diese aus:
 
 ```
-tamara:pbkdf2$210000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1nqBHor9aj1oeSHQbuz_o
+tamara:pbkdf2$100000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1nqBHor9aj1oeSHQbuz_o
 ```
 
 Ein eigenes Passwort vergeben geht auch:
@@ -103,9 +103,14 @@ In beiden Fällen bekommst du einen Block wie diesen – eine Zeile pro
 Person. Genau der kommt in Schritt 3 nach Cloudflare:
 
 ```
-tamara:pbkdf2$210000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1n...
-tim:pbkdf2$210000$Qd8xK2pLm4RtYvBnHjKl9A$Tz3mXpQ7rNvEwYsKdFgHjLpOi...
+tamara:pbkdf2$100000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1n...
+tim:pbkdf2$100000$Qd8xK2pLm4RtYvBnHjKl9A$Tz3mXpQ7rNvEwYsKdFgHjLpOi...
 ```
+
+> **Hinweis zu den Runden:** Im Hash steht `pbkdf2$100000$…`. Diese Zahl
+> ist die Obergrenze, die Cloudflare Workers zulaesst. Hashes mit einer
+> hoeheren Zahl (z. B. `210000`) lehnt die Laufzeit ab – falls du noch
+> solche in `CMS_USERS` stehen hast, bitte neu erzeugen.
 
 **Passwort vergessen?** Kein Problem – einfach eine neue Zeile für die
 Person erzeugen und die alte ersetzen. Zurückrechnen lässt sich ein Hash

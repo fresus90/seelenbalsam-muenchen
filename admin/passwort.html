@@ -119,7 +119,8 @@
 (function () {
   'use strict';
 
-  var ITERATIONEN = 210000;
+  // Cloudflare Workers laesst hoechstens 100000 Runden zu.
+  var ITERATIONEN = 100000;
   var eintraege = [];
 
   var $ = function (id) { return document.getElementById(id); };

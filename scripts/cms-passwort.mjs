@@ -10,7 +10,8 @@
  * nach Cloudflare. Siehe docs/ADMIN-SETUP.md.
  */
 
-const ITERATIONS = 210000;
+// Cloudflare Workers laesst hoechstens 100000 Runden zu.
+const ITERATIONS = 100000;
 
 function b64url(bytes) {
   return Buffer.from(bytes).toString('base64')

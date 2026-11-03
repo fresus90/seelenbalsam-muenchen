@@ -168,7 +168,7 @@ Wenn du etwas nicht weißt: freundlich sagen und WhatsApp empfehlen. Nichts erfi
      GITHUB_TOKEN   Secret. Fine-grained PAT, nur dieses Repository,
                     Berechtigung "Contents: Read and write".
      CMS_USERS      Secret. Zugangsdaten, eine Person pro Zeile:
-                      tamara:pbkdf2$210000$<salt>$<hash>
+                      tamara:pbkdf2$100000$<salt>$<hash>
                     Hashes erzeugt `node scripts/cms-passwort.mjs`.
                     Ein Klartext-Passwort wird auch akzeptiert, ist aber
                     nur als schneller Einstieg gedacht.
@@ -183,7 +183,10 @@ const CMS_REPO = 'fresus90/seelenbalsam-muenchen';
 const GITHUB_API = 'https://api.github.com';
 const SESSION_COOKIE = 'sb_cms_session';
 const SESSION_MAX_AGE_S = 12 * 60 * 60;
-const PBKDF2_ITERATIONS = 210000;
+// Cloudflare Workers laesst hoechstens 100000 Runden zu. Mehr quittiert die
+// Laufzeit mit "iteration counts above 100000 are not supported".
+const PBKDF2_ITERATIONS = 100000;
+const PBKDF2_MAX_ITERATIONS = 100000;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_MAX_ATTEMPTS = 10;
 
@@ -293,6 +296,12 @@ async function passwordMatches(password, stored) {
     if (parts.length !== 4) return false;
     const iterations = parseInt(parts[1], 10);
     if (!Number.isFinite(iterations) || iterations < 1000) return false;
+    if (iterations > PBKDF2_MAX_ITERATIONS) {
+      throw new CmsAuthError(500,
+        'Die hinterlegten Zugangsdaten wurden mit ' + iterations + ' Runden erzeugt, ' +
+        'Cloudflare erlaubt hoechstens ' + PBKDF2_MAX_ITERATIONS + '. Bitte die Zugangsdaten ' +
+        'unter /admin/passwort.html neu erzeugen und CMS_USERS ersetzen.');
+    }
     let salt, expected;
     try {
       salt = base64UrlDecode(parts[2]);
