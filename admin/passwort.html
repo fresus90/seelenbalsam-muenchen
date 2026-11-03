@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Zugangsdaten erzeugen &middot; Seelenbalsam</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --terracotta:#C4906A; --dark:#3D2B1F; --taupe:#B09A88; --warm:#FDF9F5; --line:#e0d2c2; }
+  * { box-sizing: border-box; }
+  body { font-family:'Jost',system-ui,sans-serif; background:var(--warm); color:var(--dark);
+         margin:0; padding:32px 20px 72px; line-height:1.65; }
+  .wrap { max-width:620px; margin:0 auto; }
+  h1 { font-family:'Cormorant Garamond',Georgia,serif; font-weight:400; font-size:1.9rem;
+       margin:0 0 6px; }
+  .sub { color:var(--taupe); font-size:.88rem; margin:0 0 28px; }
+  .karte { background:#fff; border:1px solid var(--line); border-radius:18px;
+           padding:24px; margin-bottom:22px; }
+  .hinweis { background:rgba(168,181,160,.16); border-left:3px solid #A8B5A0;
+             border-radius:0 10px 10px 0; padding:14px 18px; margin-bottom:26px;
+             font-size:.86rem; }
+  label { display:block; font-size:.68rem; letter-spacing:.12em; text-transform:uppercase;
+          color:var(--taupe); margin:0 0 6px; }
+  input, textarea { width:100%; padding:12px 14px; font-size:.95rem; font-family:inherit;
+          border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--dark); }
+  input:focus, textarea:focus { outline:none; border-color:var(--terracotta); }
+  .feld { margin-bottom:16px; }
+  .reihe { display:flex; gap:10px; align-items:flex-end; }
+  .reihe .feld { flex:1; margin-bottom:0; }
+  button { font-family:inherit; cursor:pointer; border-radius:30px; border:none;
+           font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; padding:12px 22px; }
+  .primaer { background:var(--terracotta); color:#fff; }
+  .primaer:hover { background:#6B4F3A; }
+  .primaer:disabled { background:var(--taupe); cursor:wait; }
+  .geist { background:#fff; color:var(--dark); border:1px solid var(--line); }
+  .geist:hover { border-color:var(--terracotta); color:var(--terracotta); }
+  .aktionen { display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  .fehler { background:rgba(196,144,106,.14); border-left:3px solid var(--terracotta);
+            border-radius:0 8px 8px 0; padding:10px 14px; margin-top:14px; font-size:.85rem; }
+  h2 { font-family:'Cormorant Garamond',Georgia,serif; font-weight:500; font-size:1.25rem;
+       margin:0 0 4px; }
+  .merk { font-size:.84rem; color:var(--taupe); margin:0 0 16px; }
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin-bottom:8px; }
+  th { text-align:left; font-size:.64rem; letter-spacing:.12em; text-transform:uppercase;
+       color:var(--taupe); font-weight:400; padding:0 8px 8px 0; }
+  td { padding:8px 8px 8px 0; border-top:1px solid #f0e6da; vertical-align:top;
+       word-break:break-word; }
+  td.pw { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.9rem; }
+  .weg { background:none; border:none; color:var(--taupe); cursor:pointer;
+         font-size:1rem; padding:0 4px; }
+  .weg:hover { color:var(--terracotta); }
+  textarea { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem;
+             min-height:110px; resize:vertical; }
+  .versteckt { display:none !important; }
+  .ok { color:#6B8E5A; font-size:.84rem; margin-left:10px; }
+  footer { text-align:center; font-size:.8rem; color:var(--taupe); margin-top:34px; }
+  footer a { color:var(--terracotta); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Zugangsdaten erzeugen</h1>
+  <p class="sub">Für das Admin-Panel von Seelenbalsam &middot; Schritt 2 der Einrichtung</p>
+
+  <div class="hinweis">
+    <strong>Alles passiert hier im Browser.</strong> Passwörter und Hashes werden
+    nirgendwo hingeschickt und nirgendwo gespeichert. Du kannst diese Seite auch
+    offline benutzen.
+  </div>
+
+  <div class="karte">
+    <div class="feld">
+      <label for="benutzer">Benutzername</label>
+      <input id="benutzer" type="text" placeholder="z. B. tamara"
+             autocapitalize="none" spellcheck="false" autocomplete="off">
+    </div>
+    <div class="reihe">
+      <div class="feld">
+        <label for="passwort">Passwort</label>
+        <input id="passwort" type="text" placeholder="leer lassen = wird gewürfelt"
+               autocomplete="off" spellcheck="false">
+      </div>
+      <button type="button" class="geist" id="wuerfeln">Würfeln</button>
+    </div>
+    <div class="aktionen">
+      <button type="button" class="primaer" id="anlegen">Hinzufügen</button>
+    </div>
+    <div id="fehler" class="fehler versteckt"></div>
+  </div>
+
+  <div class="karte versteckt" id="ergebnis">
+    <h2>1 &ndash; Passwörter notieren und weitergeben</h2>
+    <p class="merk">Diese Passwörter sind <strong>nur jetzt</strong> sichtbar. Sobald du
+       die Seite schließt, sind sie weg &ndash; aus dem Hash lassen sie sich nicht
+       zurückrechnen.</p>
+    <table>
+      <thead><tr><th>Benutzername</th><th>Passwort</th><th></th></tr></thead>
+      <tbody id="liste"></tbody>
+    </table>
+
+    <h2 style="margin-top:28px;">2 &ndash; Nach Cloudflare kopieren</h2>
+    <p class="merk">Unter <em>Settings &rarr; Variables and Secrets</em> als Secret
+       mit dem Namen <strong>CMS_USERS</strong> einfügen.</p>
+    <textarea id="ausgabe" readonly spellcheck="false"></textarea>
+    <div class="aktionen">
+      <button type="button" class="primaer" id="kopieren">Kopieren</button>
+      <span class="ok versteckt" id="kopiert">Kopiert.</span>
+    </div>
+  </div>
+
+  <footer>
+    Die vollständige Anleitung steht in <code>docs/ADMIN-SETUP.md</code>.
+  </footer>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var ITERATIONEN = 210000;
+  var eintraege = [];
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  function b64url(bytes) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function wuerfelPasswort(laenge) {
+    laenge = laenge || 20;
+    // Ohne leicht verwechselbare Zeichen (0/O, 1/l/I)
+    var alphabet = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var grenze = 256 - (256 % alphabet.length);
+    var out = '';
+    while (out.length < laenge) {
+      var raw = new Uint8Array(laenge * 2);
+      crypto.getRandomValues(raw);
+      for (var i = 0; i < raw.length && out.length < laenge; i++) {
+        if (raw[i] < grenze) out += alphabet[raw[i] % alphabet.length];
+      }
+    }
+    return out;
+  }
+
+  function hashen(passwort, salt) {
+    return crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(passwort), { name: 'PBKDF2' }, false, ['deriveBits']
+    ).then(function (key) {
+      return crypto.subtle.deriveBits(
+        { name: 'PBKDF2', salt: salt, iterations: ITERATIONEN, hash: 'SHA-256' }, key, 256
+      );
+    }).then(function (bits) { return new Uint8Array(bits); });
+  }
+
+  function zeigeFehler(text) {
+    var el = $('fehler');
+    if (!text) { el.classList.add('versteckt'); return; }
+    el.textContent = text;
+    el.classList.remove('versteckt');
+  }
+
+  function zeichne() {
+    var liste = $('liste');
+    liste.innerHTML = '';
+    eintraege.forEach(function (e, i) {
+      var tr = document.createElement('tr');
+
+      var tdName = document.createElement('td');
+      tdName.textContent = e.benutzer;
+
+      var tdPw = document.createElement('td');
+      tdPw.className = 'pw';
+      tdPw.textContent = e.passwort;
+
+      var tdWeg = document.createElement('td');
+      tdWeg.style.width = '28px';
+      var btn = document.createElement('button');
+      btn.className = 'weg';
+      btn.type = 'button';
+      btn.title = 'Entfernen';
+      btn.textContent = '✕';
+      btn.addEventListener('click', function () {
+        eintraege.splice(i, 1);
+        zeichne();
+      });
+      tdWeg.appendChild(btn);
+
+      tr.appendChild(tdName); tr.appendChild(tdPw); tr.appendChild(tdWeg);
+      liste.appendChild(tr);
+    });
+
+    $('ausgabe').value = eintraege.map(function (e) { return e.zeile; }).join('\n');
+    $('ergebnis').classList.toggle('versteckt', eintraege.length === 0);
+  }
+
+  $('wuerfeln').addEventListener('click', function () {
+    $('passwort').value = wuerfelPasswort();
+    zeigeFehler('');
+  });
+
+  $('anlegen').addEventListener('click', function () {
+    zeigeFehler('');
+    var benutzer = $('benutzer').value.trim().toLowerCase();
+    var passwort = $('passwort').value;
+
+    if (!benutzer) return zeigeFehler('Bitte einen Benutzernamen eingeben.');
+    if (/[:\s]/.test(benutzer)) {
+      return zeigeFehler('Der Benutzername darf keine Leerzeichen und keinen Doppelpunkt enthalten.');
+    }
+    if (eintraege.some(function (e) { return e.benutzer === benutzer; })) {
+      return zeigeFehler('Diesen Benutzernamen gibt es in der Liste schon.');
+    }
+    if (!passwort) passwort = wuerfelPasswort();
+    if (passwort.length < 10) {
+      return zeigeFehler('Bitte ein Passwort mit mindestens 10 Zeichen verwenden.');
+    }
+
+    var knopf = $('anlegen');
+    knopf.disabled = true;
+    knopf.textContent = 'Rechnet …';
+
+    var salt = new Uint8Array(16);
+    crypto.getRandomValues(salt);
+
+    hashen(passwort, salt).then(function (digest) {
+      eintraege.push({
+        benutzer: benutzer,
+        passwort: passwort,
+        zeile: benutzer + ':pbkdf2$' + ITERATIONEN + '$' + b64url(salt) + '$' + b64url(digest)
+      });
+      $('benutzer').value = '';
+      $('passwort').value = '';
+      $('benutzer').focus();
+      zeichne();
+    }).catch(function (err) {
+      zeigeFehler('Das hat nicht geklappt: ' + err.message);
+    }).then(function () {
+      knopf.disabled = false;
+      knopf.textContent = 'Hinzufügen';
+    });
+  });
+
+  $('passwort').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('anlegen').click();
+  });
+  $('benutzer').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') $('passwort').focus();
+  });
+
+  $('kopieren').addEventListener('click', function () {
+    var feld = $('ausgabe');
+    var fertig = function () {
+      $('kopiert').classList.remove('versteckt');
+      setTimeout(function () { $('kopiert').classList.add('versteckt'); }, 2500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(feld.value).then(fertig, function () {
+        feld.select(); document.execCommand('copy'); fertig();
+      });
+    } else {
+      feld.select(); document.execCommand('copy'); fertig();
+    }
+  });
+
+  if (!crypto || !crypto.subtle) {
+    zeigeFehler('Dieser Browser kann die nötige Verschlüsselung nicht. Bitte Chrome, '
+      + 'Firefox, Safari oder Edge verwenden – und die Seite über https:// oder als '
+      + 'lokale Datei öffnen.');
+    $('anlegen').disabled = true;
+  }
+})();
+</script>
+</body>
+</html>

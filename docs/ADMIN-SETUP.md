@@ -47,14 +47,42 @@ deployt automatisch. Nach ein bis zwei Minuten sind sie live.
 
 ## Schritt 2 – Zugangsdaten erzeugen
 
+Du brauchst pro Person einen Benutzernamen und ein Passwort. Gespeichert
+wird nie das Passwort selbst, sondern nur ein Hash daraus.
+
+### Variante A – im Browser (nichts zu installieren)
+
+Öffne die Seite **`admin/passwort.html`**:
+
+- **Nach dem nächsten Deployment online:**
+  `https://seelenbalsam-muenchen.de/admin/passwort.html`
+- **Oder ohne Internet:** die Datei `admin/passwort.html` aus dem
+  Repository herunterladen und doppelklicken.
+
+Dann für jede Person:
+
+1. Benutzernamen eingeben (z. B. `tamara`).
+2. Passwort eingeben – oder das Feld leer lassen bzw. auf **Würfeln**
+   klicken, dann wird ein sicheres erzeugt.
+3. Auf **Hinzufügen** klicken.
+
+Unten erscheinen die Passwörter im Klartext (**jetzt notieren und an die
+Person weitergeben – danach sind sie weg**) und darunter der fertige
+Text für Cloudflare. Mit **Kopieren** in die Zwischenablage.
+
+> Die Seite rechnet alles im Browser. Passwörter und Hashes werden
+> nirgendwohin geschickt und nirgends gespeichert.
+
+### Variante B – im Terminal (wenn Node.js installiert ist)
+
 Im Projektordner, einmal pro Person:
 
 ```
 node scripts/cms-passwort.mjs tamara
 ```
 
-Das Skript würfelt ein sicheres Passwort, zeigt es an und gibt eine Zeile
-wie diese aus:
+Das Skript würfelt ein Passwort, zeigt es an und gibt eine Zeile wie
+diese aus:
 
 ```
 tamara:pbkdf2$210000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1nqBHor9aj1oeSHQbuz_o
@@ -66,17 +94,22 @@ Ein eigenes Passwort vergeben geht auch:
 node scripts/cms-passwort.mjs tamara "mein sicheres Passwort"
 ```
 
-**Das Passwort jetzt notieren und an die Person weitergeben** – gespeichert
-wird nur der Hash, zurückrechnen lässt er sich nicht. Ist das Passwort
-weg, erzeugst du einfach eine neue Zeile.
+Für mehrere Personen mehrfach aufrufen und die Zeilen untereinander
+sammeln.
 
-Für mehrere Personen das Skript mehrfach aufrufen und die Zeilen
-untereinander sammeln:
+### Das Ergebnis
+
+In beiden Fällen bekommst du einen Block wie diesen – eine Zeile pro
+Person. Genau der kommt in Schritt 3 nach Cloudflare:
 
 ```
-tamara:pbkdf2$210000$70tRLyZ...
-tim:pbkdf2$210000$Qd8xK2p...
+tamara:pbkdf2$210000$70tRLyZ3fCmghx3kIe_OcA$gY_piY_yjEZ0LB9wceTtAt1n...
+tim:pbkdf2$210000$Qd8xK2pLm4RtYvBnHjKl9A$Tz3mXpQ7rNvEwYsKdFgHjLpOi...
 ```
+
+**Passwort vergessen?** Kein Problem – einfach eine neue Zeile für die
+Person erzeugen und die alte ersetzen. Zurückrechnen lässt sich ein Hash
+nicht.
 
 ---
 

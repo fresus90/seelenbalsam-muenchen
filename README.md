@@ -18,7 +18,8 @@ Admin-Panel unter `/admin` gepflegt und liegen als JSON-Dateien im Ordner `/_dat
 Die Anmeldung läuft mit **Benutzername und Passwort** – ein GitHub-Account ist
 dafür nicht nötig. Der Worker unter `/cms-api/*` prüft bei jeder Anfrage die
 signierte Sitzung und spricht stellvertretend mit der GitHub-API; der
-GitHub-Token bleibt serverseitig. Zugangsdaten erzeugt
+GitHub-Token bleibt serverseitig. Zugangsdaten erzeugt man unter
+`/admin/passwort.html` (läuft komplett im Browser) oder mit
 `node scripts/cms-passwort.mjs <name>`. Einrichtung und Fehlersuche:
 [`docs/ADMIN-SETUP.md`](docs/ADMIN-SETUP.md).
 
